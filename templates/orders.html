@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>주문 목록</title>
+</head>
+<body>
+  <h1>📋 주문 목록</h1>
+
+  <form method="get" action="/orders">
+    <input type="text" name="q" placeholder="이름, 주소, 품목 검색" value="{{ query }}">
+    <button type="submit">검색</button>
+  </form>
+
+  <br>
+  {% if orders %}
+    <ul>
+    {% for order in orders %}
+      <li>
+        <strong>{{ order.time }}</strong><br>
+        이름: {{ order.customer_name }}<br>
+        전화번호: {{ order.phone_number }}<br>
+        주소: {{ order.address }}<br>
+        주문 내역: {{ ", ".join(order.items) }}<br>
+
+        <form method="post" action="/delete-order" style="margin-top: 5px;">
+          <input type="hidden" name="order_time" value="{{ order.time }}">
+          <input type="hidden" name="customer_name" value="{{ order.customer_name }}">
+          <button type="submit">❌ 삭제</button>
+        </form>
+      </li>
+      <hr>
+    {% endfor %}
+    </ul>
+  {% else %}
+    <p>주문이 없습니다.</p>
+  {% endif %}
+
+  <br>
+  <a href="/order-form">← 주문하러 가기</a>
+</body>
+</html>
