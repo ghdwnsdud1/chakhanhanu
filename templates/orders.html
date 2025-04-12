@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <title>착한한우 주문서</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #fefefe;
+      background: #fefefe;
       margin: 0;
       padding: 40px;
       font-size: 18px;
@@ -17,25 +18,29 @@
       margin-bottom: 30px;
     }
     .notice {
-      background-color: #f9f9f9;
+      background: #f9f9f9;
       padding: 15px;
       margin-bottom: 30px;
-      border-radius: 5px;
-      font-size: 16px;
-      color: #333;
-      text-align: center;
       border: 1px solid #ddd;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 16px;
       width: 80%;
-      margin: 0 auto 30px auto;
+      margin-left: auto;
+      margin-right: auto;
     }
     .category {
       display: flex;
-      justify-content: space-around;
-      gap: 20px;
       flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
     }
     .section {
       width: 45%;
+    }
+    .section h2 {
+      text-align: center;
+      margin-bottom: 10px;
     }
     .item {
       display: flex;
@@ -59,7 +64,6 @@
     .controls input {
       width: 40px;
       text-align: center;
-      font-size: 16px;
     }
     .cart {
       margin-top: 30px;
@@ -69,16 +73,16 @@
     .cart-item {
       display: flex;
       justify-content: space-between;
-      margin: 8px 0;
       align-items: center;
+      margin: 8px 0;
     }
     .sticky-footer {
       position: sticky;
       bottom: 0;
       background: white;
       padding: 1.5rem;
-      border-top: 2px solid #ddd;
       text-align: center;
+      border-top: 2px solid #ddd;
       box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
     #submit-btn {
@@ -89,16 +93,11 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      margin-top: 10px;
     }
     #submit-btn:disabled {
       background-color: #ccc;
       cursor: not-allowed;
-    }
-    @media (max-width: 768px) {
-      .category { flex-direction: column; align-items: center; }
-      .section { width: 90%; }
-      .controls button { width: 36px; height: 36px; font-size: 22px; }
-      .controls input { width: 50px; font-size: 20px; }
     }
   </style>
 </head>
@@ -108,7 +107,8 @@
 <h1>🐷 착한한우 주문서 🐮</h1>
 
 <div class="notice">
-  <strong>공지사항:</strong> 주문 전에 반드시 상품 수량을 확인해 주세요.<br> 
+  <strong>공지사항:</strong><br>
+  주문 전에 반드시 상품 수량을 확인해 주세요.<br>
   품절 상품은 주문 불가, 주문은 100g 단위입니다.
 </div>
 
@@ -139,7 +139,7 @@
   </div>
 
   <div class="sticky-footer">
-    <div style="margin-bottom: 10px; font-size: 20px; font-weight: bold;">
+    <div style="margin-bottom: 10px; font-weight: bold;">
       총 합계: <span id="bottom-total-price">0</span>원 / 총 중량: <span id="bottom-total-weight">0</span>g
     </div>
     <button id="submit-btn" disabled>✅ 주문하기</button>
@@ -147,16 +147,29 @@
 </form>
 
 <script>
+const menuItems = {{ menu_items | safe }};
 let cart = [];
 
+function changeQuantity(id, delta) {
+  const input = document.getElementById(id);
+  let val = parseFloat(input.value) || 0;
+  input.value = Math.max(0, val + delta);
+  input.dispatchEvent(new Event('input'));
+}
+
 function updateCart() {
-  const menuItems = {{ menu_items | safe }};
-  const cartList = document.getElementById('cart-list');
-  const inputs = document.querySelectorAll('input[type="number"]');
+  const cartList = document.getElementById("cart-list");
+  const totalPriceElem = document.getElementById("total-price");
+  const totalWeightElem = document.getElementById("total-weight");
+  const bottomTotalPriceElem = document.getElementById("bottom-total-price");
+  const bottomTotalWeightElem = document.getElementById("bottom-total-weight");
+
+  cartList.innerHTML = '';
   let total = 0;
   let totalGram = 0;
-  cartList.innerHTML = '';
+  cart = [];
 
+  const inputs = document.querySelectorAll('input[type="number"]');
   inputs.forEach(input => {
     const name = input.name;
     const qty = parseFloat(input.value) || 0;
@@ -165,26 +178,24 @@ function updateCart() {
       const subtotal = Math.floor(price * qty / 100) * 100;
       total += subtotal;
       totalGram += qty * 100;
+      cart.push({ name, qty });
 
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'cart-item';
-      itemDiv.innerHTML = `<span>${name} - ${qty * 100}g → <strong>${subtotal.toLocaleString()}원</strong></span> <span class="remove-item" onclick="removeFromCart('${name}')">🗑️</span>`;
-      cartList.appendChild(itemDiv);
+      const cartItem = document.createElement("div");
+      cartItem.classList.add("cart-item");
+      cartItem.innerHTML = `
+        <span>${name} (중량: ${qty * 100}g) → <strong>${subtotal.toLocaleString()}원</strong></span>
+        <span class="remove-item" onclick="removeFromCart('${name}')">🗑️</span>
+      `;
+      cartList.appendChild(cartItem);
     }
   });
 
-  document.getElementById('total-price').innerText = total.toLocaleString();
-  document.getElementById('total-weight').innerText = totalGram.toLocaleString();
-  document.getElementById('bottom-total-price').innerText = total.toLocaleString();
-  document.getElementById('bottom-total-weight').innerText = totalGram.toLocaleString();
-  validateForm();
-}
+  totalPriceElem.textContent = total.toLocaleString();
+  totalWeightElem.textContent = totalGram.toLocaleString();
+  bottomTotalPriceElem.textContent = total.toLocaleString();
+  bottomTotalWeightElem.textContent = totalGram.toLocaleString();
 
-function changeQuantity(id, delta) {
-  const input = document.getElementById(id);
-  let val = parseFloat(input.value) || 0;
-  input.value = Math.max(0, val + delta);
-  input.dispatchEvent(new Event('input'));
+  validateForm();
 }
 
 function removeFromCart(name) {
@@ -196,13 +207,13 @@ function removeFromCart(name) {
 }
 
 function validateForm() {
-  const inputs = document.querySelectorAll('input[type="number"]');
-  const hasQty = Array.from(inputs).some(input => parseFloat(input.value) > 0);
+  const quantities = [...document.querySelectorAll('input[type="number"]')];
+  const hasQty = quantities.some(input => parseFloat(input.value) > 0);
   document.getElementById('submit-btn').disabled = !hasQty;
 }
 
-document.querySelectorAll('input, textarea, select').forEach(el => {
-  el.addEventListener('input', validateForm);
+document.querySelectorAll('input[type="number"]').forEach(input => {
+  input.addEventListener('input', updateCart);
 });
 </script>
 
