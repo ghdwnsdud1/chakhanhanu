@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>착한한우 주문서</title>
+<!-- ✅ 1. 모바일 반응형 설정 추가 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
 .payment-method select {
   width: 100%;
@@ -77,6 +79,36 @@
       width: 80%;
       margin-left: auto;
       margin-right: auto;
+
+    /* ✅ 2. 모바일 화면에서는 세로로 정렬 + 버튼/폰트 커지게 */
+    @media (max-width: 768px) {
+      .category {
+        flex-direction: column;
+        align-items: center;
+      }
+      .section {
+        width: 90%;
+      }
+      .controls button {
+        width: 36px;
+        height: 36px;
+        font-size: 22px;
+      }
+      .controls input {
+        width: 50px;
+        font-size: 20px;
+      }
+      .cart-item span {
+        font-size: 18px;
+      }
+      .text-center button {
+        font-size: 24px;
+        padding: 20px 40px;
+      }
+      .notice {
+        font-size: 16px;
+        padding: 10px;
+      }
     }
     .cart {
       margin-top: 30px;
