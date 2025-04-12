@@ -5,7 +5,6 @@
   <title>착한한우 고기 주문서</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* 스타일 (네가 준 것 그대로) */
     body {
       font-family: sans-serif;
       padding: 20px;
@@ -56,6 +55,16 @@
       justify-content: space-between;
       align-items: center;
     }
+    .item-buttons {
+      display: flex;
+      gap: 5px;
+    }
+    .action-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
     .button-group {
       display: flex;
       justify-content: space-between;
@@ -77,7 +86,6 @@
 
 <form method="POST" action="/submit" id="orderForm">
 
-  <!-- 돼지고기 선택 -->
   <h2>🐷 돼지고기 선택</h2>
   <select id="porkSelect">
     <option value="">-- 돼지고기 부위를 선택하세요 --</option>
@@ -85,7 +93,6 @@
   <input type="number" id="porkWeight" placeholder="중량 (10g 단위)" step="10" min="10">
   <button type="button" onclick="addItem('pork')">추가하기</button>
 
-  <!-- 소고기 선택 -->
   <h2>🐮 소고기 선택</h2>
   <select id="beefSelect">
     <option value="">-- 소고기 부위를 선택하세요 --</option>
@@ -106,7 +113,7 @@
 
   <div id="requestSection">
     <h2>📝 요청사항</h2>
-    <textarea id="request" placeholder="추가 요청사항을 입력하세요" rows="4"></textarea>
+    <textarea id="request" name="request_message" placeholder="추가 요청사항을 입력하세요" rows="4"></textarea>
   </div>
 
   <hr>
@@ -120,27 +127,27 @@
     <h2>📦 배송지 입력</h2>
 
     <div style="display: flex; align-items: center; gap: 8px;">
-      <input type="text" id="contact" name="contact" placeholder="연락처 (예: 010-1234-5678)" style="flex: 1 0 70%;">
+      <input type="text" id="contact" name="contact" placeholder="연락처 (예: 010-1234-5678)">
       <span class="important">*</span>
     </div>
     <small style="color: gray; font-size: 14px;">※ 연락처는 010-1234-5678 형식으로 입력해주세요.</small>
 
     <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
-      <input type="text" id="name" name="name" placeholder="이름" style="flex: 1 0 70%;">
+      <input type="text" id="name" name="name" placeholder="이름">
       <span class="important">*</span>
     </div>
 
     <div style="display: flex; align-items: center; gap: 8px;">
-      <input type="text" id="address" name="address" placeholder="주소" style="flex: 1 0 70%;">
+      <input type="text" id="address" name="address" placeholder="주소">
       <span class="important">*</span>
     </div>
 
     <div style="display: flex; align-items: center; gap: 8px;">
-      <input type="text" id="doorcode" name="doorcode" placeholder="공동현관 비밀번호" style="flex: 1 0 70%;">
+      <input type="text" id="doorcode" name="doorcode" placeholder="공동현관 비밀번호">
       <span class="important">*</span>
     </div>
 
-    <textarea id="deliveryRequest" name="delivery_request" placeholder="배송 관련 요청사항 (선택)" rows="3" style="width: 100%; margin-top: 10px;"></textarea>
+    <textarea id="deliveryRequest" name="delivery_request" placeholder="배송 관련 요청사항 (선택)" rows="3" style="margin-top: 10px;"></textarea>
   </div>
 
   <hr>
@@ -149,7 +156,7 @@
     <h2>💳 결제 방법</h2>
 
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-      <select id="paymentMethod" name="payment_method" onchange="togglePaymentFields()" style="flex: 1 0 70%;">
+      <select id="paymentMethod" name="payment_method" onchange="togglePaymentFields()">
         <option value="">-- 결제 방법을 선택하세요 --</option>
         <option value="account">계좌이체</option>
         <option value="card">카드결제</option>
@@ -159,21 +166,23 @@
 
     <div id="accountFields" style="display: none;">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-        <input type="text" id="depositorName" name="depositor_name" placeholder="입금자명" style="flex: 1 0 70%;">
+        <input type="text" id="depositorName" name="depositor_name" placeholder="입금자명">
         <span class="important">*</span>
       </div>
 
-      <input type="text" id="cashReceipt" name="cash_receipt" placeholder="현금영수증 번호 (선택)" style="width: 100%; margin-bottom: 10px;">
+      <input type="text" id="cashReceipt" name="cash_receipt" placeholder="현금영수증 번호 (선택)" style="margin-bottom: 10px;">
     </div>
   </div>
 
   <hr>
 
-  <div id="finalSection" style="text-align: center; margin-top: 20px;">
+  <div id="finalSection" style="text-align: center;">
     <h2>🧾 총 결제 금액</h2>
     <div id="finalAmount" style="font-size: 24px; margin-bottom: 20px;">0원</div>
 
+    <!-- 총 결제 금액과 선택한 고기 숨기기 -->
     <input type="hidden" id="formTotalAmount" name="total_amount">
+    <input type="hidden" id="selectedItemsInput" name="selected_items">
 
     <button id="submitButton" type="submit" disabled>결제하기</button>
   </div>
@@ -181,7 +190,13 @@
 </form>
 
 <script>
-/* --- 고기 목록 (돼지 + 소) --- */
+// === JavaScript는 바로 이어서 줄게! (바로 계속 보내자)
+</script>
+
+</body>
+</html>
+<script>
+/* 고기 목록 */
 const porkList = { "삼겹살": 2967, "오겹살": 3134, "목살": 2634, "앞다리살": 1650, "찌개용": 1650, "등갈비": 2967, "갈빗대벌집삼겹살": 3300, "생 대패삼겹살": 2967, "돈 등심": 1650, "돈 안심": 1650, "항정살": 6500, "가브리살(등심덧살)": 5500, "갈매기살": 5000, "꼬들살": 3800, "앞 사태(껍질O)": 1967, "돼지갈비": 1650 };
 const beefList = { "한우 꽃등심": 18800, "한우 채끝등심": 18000, "한우 안심": 18800, "한우 치마살": 21800, "한우 살치살": 21800, "한우 꽃갈비살": 21800, "한우 부채살": 18000, "한우 업진살": 18000, "한우 갈비살": 18000, "한우 제비추리": 18000, "한우 안창살": 29800, "한우 토시살": 21800, "한우 양지 국거리": 7500, "한우 목심 양지": 6000, "한우 사태": 5000, "한우 우둔살": 7000, "한우 다짐육": 7000, "한우 육회": 7500 };
 
@@ -216,17 +231,16 @@ function addItem(type) {
   }
 
   const meat = select.value;
-  let weight = parseInt(weightInput.value);
+  const weight = parseInt(weightInput.value);
 
   if (!meat || isNaN(weight) || weight <= 0 || weight % 10 !== 0) {
     alert('고기 부위와 중량을 정확히 입력해주세요. (10g 단위)');
     return;
   }
 
-  // 같은 고기 부위가 이미 있는지 확인
   const existing = selectedItems.find(item => item.meat === meat);
   if (existing) {
-    existing.weight += weight; // 있으면 중량 합치기
+    existing.weight += weight;
   } else {
     selectedItems.push({ meat, weight, pricePer100g: priceList[meat] });
   }
@@ -249,8 +263,8 @@ function updateList() {
     div.innerHTML = `
       ${item.meat} - ${item.weight}g - ${itemPrice.toLocaleString()}원
       <div class="item-buttons">
-        <button class="action-btn" onclick="editItem(${index})">✏️</button>
-        <button class="action-btn" onclick="removeItem(${index})">🗑️</button>
+        <button class="action-btn" type="button" onclick="editItem(${index})">✏️</button>
+        <button class="action-btn" type="button" onclick="removeItem(${index})">🗑️</button>
       </div>
     `;
     itemsList.appendChild(div);
@@ -262,8 +276,10 @@ function updateList() {
   const roundedPrice = Math.floor(totalPrice / 100) * 100;
   document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight}g`;
   document.getElementById('totalPrice').textContent = `총 금액: ${roundedPrice.toLocaleString()}원`;
+  document.getElementById('finalAmount').textContent = `${roundedPrice.toLocaleString()}원`;
+  document.getElementById('formTotalAmount').value = roundedPrice;
 
-  updateFinalAmount();
+  document.getElementById('selectedItemsInput').value = JSON.stringify(selectedItems);
 }
 
 function editItem(index) {
@@ -345,6 +361,3 @@ document.getElementById('contact').addEventListener('input', function(e) {
   document.getElementById(id).addEventListener('input', validateForm);
 });
 </script>
-
-</body>
-</html>

@@ -8,13 +8,13 @@ from datetime import datetime
 
 app = FastAPI()
 
-# 정적 파일 (CSS, JS, 이미지 등) 제공
+# 정적 파일 제공 (CSS, JS, 이미지)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 템플릿 폴더 연결 (HTML 파일들)
+# 템플릿 폴더 연결 (HTML 파일)
 templates = Jinja2Templates(directory="templates")
 
-# 주문 저장할 파일 경로
+# 주문 저장 파일
 ORDER_FILE = "orders.json"
 
 # 주문서 페이지 보여주기
@@ -35,7 +35,8 @@ async def submit_order(
     delivery_request: str = Form(""),
     depositor_name: str = Form(""),
     cash_receipt: str = Form(""),
-    total_amount: str = Form(""),
+    total_amount: str = Form(...),
+    selected_items: str = Form(...)
 ):
     # 새 주문 데이터
     new_order = {
@@ -50,9 +51,10 @@ async def submit_order(
         "request_message": request_message,
         "delivery_request": delivery_request,
         "total_amount": total_amount,
+        "selected_items": json.loads(selected_items)
     }
 
-    # 주문 저장
+    # 주문 파일 불러오기
     if os.path.exists(ORDER_FILE):
         with open(ORDER_FILE, "r", encoding="utf-8") as f:
             orders = json.load(f)
