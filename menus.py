@@ -1,24 +1,42 @@
 # menus.py
 
-# 🐷 돼지고기 메뉴
-pork_menus = [
-    {"id": "item_samgyeop", "label": "삼겹살", "price": 2967},
-    {"id": "item_ogyeop", "label": "오겹살", "price": 3134},
-    {"id": "item_moksal", "label": "목살", "price": 2634},
-    # 추가 메뉴 예시
-    {"id": "item_galbisal", "label": "갈비살", "price": 3400},
-    {"id": "item_pig_jowl", "label": "항정살", "price": 3220},
-]
-
-# 🐮 소고기 (한우 1++) 메뉴
-beef_menus = [
-    {"id": "item_hanwoo_kkot", "label": "한우 꽃등심", "price": 18800},
-    {"id": "item_hanwoo_chaekkkeut", "label": "한우 채끝등심", "price": 18000},
-    {"id": "item_hanwoo_ansim", "label": "한우 안심", "price": 18800},
-    # 추가 메뉴 예시
-    {"id": "item_hanwoo_satae", "label": "한우 사태", "price": 12900},
-    {"id": "item_hanwoo_chadol", "label": "한우 차돌박이", "price": 15600},
-]
-
-# id -> label 이름 맵 (주문 확인용)
-ITEM_NAME_MAP = {item["id"]: item["label"] for item in pork_menus + beef_menus}
+menu_items = {
+    "돼지고기": [
+        {"id": "p1", "name": "삼겹살", "price": 2967},
+        {"id": "p2", "name": "오겹살", "price": 3134},
+        {"id": "p3", "name": "목살", "price": 2634},
+        {"id": "p4", "name": "앞다리살", "price": 1650},
+        {"id": "p5", "name": "찌게용", "price": 1650},
+        {"id": "p6", "name": "등갈비", "price": 2967},
+        {"id": "p7", "name": "갈빗대벌집삼겹살", "price": 3300},
+        {"id": "p8", "name": "생 대패삼겹살", "price": 2967},
+        {"id": "p9", "name": "돈 등심", "price": 1650},
+        {"id": "p10", "name": "돈 안심", "price": 1650},
+        {"id": "p11", "name": "항정살", "price": 6500},
+        {"id": "p12", "name": "가브리살(등심덧살)", "price": 5500},
+        {"id": "p13", "name": "갈매기살", "price": 5000},
+        {"id": "p14", "name": "꼬들살", "price": 3800},
+        {"id": "p15", "name": "앞 사태(껍질o)", "price": 1967},
+        {"id": "p16", "name": "돼지갈비", "price": 1650},
+    ],
+    "소고기 (특상한우 1++)": [
+        {"id": "b1", "name": "한우 꽃등심", "price": 18800},
+        {"id": "b2", "name": "한우 채끝등심", "price": 18000},
+        {"id": "b3", "name": "한우 안심", "price": 18800},
+        {"id": "b4", "name": "한우 치마살", "price": 21800},
+        {"id": "b5", "name": "한우 살치살", "price": 21800},
+        {"id": "b6", "name": "한우 꽃갈비살", "price": 21800},
+        {"id": "b7", "name": "한우 부채살", "price": 18000},
+        {"id": "b8", "name": "한우 업진살", "price": 18000},
+        {"id": "b9", "name": "한우 갈비살", "price": 18000},
+        {"id": "b10", "name": "한우 제비추리", "price": 18000},
+        {"id": "b11", "name": "한우 안창살", "price": 29800},
+        {"id": "b12", "name": "한우 토시살", "price": 21800},
+        {"id": "b13", "name": "한우 양지 국거리", "price": 7500},
+        {"id": "b14", "name": "한우 목심 양지", "price": 6000},
+        {"id": "b15", "name": "한우 사태", "price": 5000},
+        {"id": "b16", "name": "한우 우둔살", "price": 7000},
+        {"id": "b17", "name": "한우 다짐육", "price": 7000},
+        {"id": "b18", "name": "한우 육회", "price": 7500},
+    ]
+}
