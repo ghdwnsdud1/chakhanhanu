@@ -3,17 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>착한한우 주문서</title>
-<!-- ✅ 1. 모바일 반응형 설정 추가 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-.payment-method select {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-sizing: border-box; /* 패딩을 포함한 크기 계산 */
-}
+    /* 기본 스타일 */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #fefefe;
@@ -24,6 +17,18 @@
     h1 {
       text-align: center;
       margin-bottom: 30px;
+    }
+    .notice {
+      background-color: #f9f9f9;
+      padding: 15px;
+      margin-bottom: 30px;
+      border-radius: 5px;
+      font-size: 16px;
+      color: #333;
+      text-align: center;
+      border: 1px solid #ddd;
+      width: 80%;
+      margin: 0 auto 30px auto;
     }
     .category {
       display: flex;
@@ -67,49 +72,6 @@
       text-align: center;
       font-size: 16px;
     }
-    .notice {
-      background-color: #f9f9f9;
-      padding: 15px;
-      margin-bottom: 30px;
-      border-radius: 5px;
-      font-size: 16px;
-      color: #333;
-      text-align: center;
-      border: 1px solid #ddd;
-      width: 80%;
-      margin-left: auto;
-      margin-right: auto;
-
-    /* ✅ 2. 모바일 화면에서는 세로로 정렬 + 버튼/폰트 커지게 */
-    @media (max-width: 768px) {
-      .category {
-        flex-direction: column;
-        align-items: center;
-      }
-      .section {
-        width: 90%;
-      }
-      .controls button {
-        width: 36px;
-        height: 36px;
-        font-size: 22px;
-      }
-      .controls input {
-        width: 50px;
-        font-size: 20px;
-      }
-      .cart-item span {
-        font-size: 18px;
-      }
-      .text-center button {
-        font-size: 24px;
-        padding: 20px 40px;
-      }
-      .notice {
-        font-size: 16px;
-        padding: 10px;
-      }
-    }
     .cart {
       margin-top: 30px;
       border-top: 2px solid #ddd;
@@ -136,19 +98,14 @@
       display: block;
       margin-bottom: 5px;
     }
-    .input-field input, .input-field textarea {
+    .input-field input, .input-field textarea, select {
       width: 100%;
       padding: 8px;
       font-size: 16px;
       border: 1px solid #ddd;
       border-radius: 5px;
+      box-sizing: border-box;
     }
-    .section-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    /* 추가된 스타일 */
     .separator {
       margin: 30px 0;
       border-top: 1px solid #ddd;
@@ -157,37 +114,10 @@
     .payment-section {
       margin-top: 30px;
     }
-    .payment-method {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .payment-method label {
-      font-weight: bold;
-    }
-    .payment-method input {
-      margin-right: 10px;
-    }
     .payment-details {
       display: none;
       margin-top: 20px;
     }
-/* 배송지 불러오기 버튼 스타일 */
-    #load-address-btn {
-      width: 100%;
-      padding: 15px;
-      font-size: 18px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      cursor: pointer;
-    }
-    #load-address-btn:hover {
-      background-color: #0056b3;
-    }
-/* === 주문 버튼 & 총합 === */
     .sticky-footer {
       position: sticky;
       bottom: 0;
@@ -211,43 +141,77 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
+    #load-address-btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+    #load-address-btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* 모바일 반응형 */
+    @media (max-width: 768px) {
+      .category {
+        flex-direction: column;
+        align-items: center;
+      }
+      .section {
+        width: 90%;
+      }
+      .controls button {
+        width: 36px;
+        height: 36px;
+        font-size: 22px;
+      }
+      .controls input {
+        width: 50px;
+        font-size: 20px;
+      }
+      .cart-item span {
+        font-size: 18px;
+      }
+      #submit-btn {
+        font-size: 24px;
+        padding: 20px 40px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
-  </style>
-</head>
-<body>
-  <h1>🐷 착한한우 주문서 🐮</h1>
+<h1>🐷 착한한우 주문서 🐮</h1>
 
-  <div class="notice">
-    <strong>공지사항:</strong> 주문 전에 반드시 상품 수량을 확인해 주세요. <br> 
-    주문 후 변경이 불가능하므로 신중하게 선택해 주세요! <br>
-    품절된 상품은 주문하실 수 없습니다. <br>
-    재고는 실시간 반영되므로, 주문시 품절안내가 될 수 있습니다.<br>
-    주문방법은 100g기준으로 4를 쓰시면 400g으로 주문됩니다 <br>
-    (50그람을 원하시면 .5를 붙여주세요!)
-  </div>
+<div class="notice">
+  <strong>공지사항:</strong> 주문 전에 반드시 상품 수량을 확인해 주세요. <br> 
+  품절 상품은 주문 불가, 주문은 100g 단위입니다.
+</div>
 
-  <form method="post" action="/order-form">
-    <div class="category">
-      {% for category, items in menu_items.items() %}
-        <div class="section">
-          <h2>{{ category }}</h2>
-          {% for item in items %}
-            <div class="item">
-              <div class="name-price">{{ item.name }} <small>(100g \{{ item.price }})</small></div>
-              <div class="controls">
-                <button type="button" onclick="changeQuantity('{{ item.id }}', -1)">-</button>
-                <input id="{{ item.id }}" name="{{ item.name }}" type="number" value="0" oninput="updateCart()">
-                <button type="button" onclick="changeQuantity('{{ item.id }}', 1)">+</button>
-              </div>
+<form method="post" action="/order-form">
+  <div class="category">
+    {% for category, items in menu_items.items() %}
+      <div class="section">
+        <h2>{{ category }}</h2>
+        {% for item in items %}
+          <div class="item">
+            <div class="name-price">{{ item.name }} <small>(100g \{{ item.price }})</small></div>
+            <div class="controls">
+              <button type="button" onclick="changeQuantity('{{ item.id }}', -1)">-</button>
+              <input id="{{ item.id }}" name="{{ item.name }}" type="number" value="0" oninput="updateCart()">
+              <button type="button" onclick="changeQuantity('{{ item.id }}', 1)">+</button>
             </div>
-          {% endfor %}
-        </div>
-      {% endfor %}
-    </div>
-  </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
 
   <div class="cart">
     <h2>🛒 선택한 상품</h2>
@@ -256,276 +220,142 @@
     <h3>총 중량: <span id="total-weight">0</span>g</h3>
   </div>
 
-  <!-- 요청사항 입력 칸 -->
+  <div class="separator"></div>
+
+  <!-- 요청사항 -->
   <div class="input-field">
     <label for="order-request">요청사항</label>
-    <textarea id="order-request" name="order-request" rows="4" placeholder="요청사항을 입력하세요."></textarea>
+    <textarea id="order-request" name="order-request" rows="4"></textarea>
   </div>
-
-  <!-- 요청사항과 배송지 구분을 위한 줄 -->
-  <div class="separator"></div>
-
-  <!-- 배송지 입력 칸 -->
-  <div class="input-field">
-    <div class="section-title">배송지</div>
-
-    <label for="phone">휴대폰 번호<span style="color: red;">*</span></label>
-    <input id="phone" name="phone" type="text" placeholder="휴대폰 번호를 입력하세요." required>
-  </div>
-
-  <div class="input-field">
-    <label for="name">이름<span style="color: red;">*</span></label>
-    <input id="name" name="name" type="text" placeholder="이름을 입력하세요." required>
-  </div>
-
-  <div class="input-field">
-    <label for="zipcode">우편번호</label>
-    <input id="zipcode" name="zipcode" type="text" placeholder="우편번호를 입력하세요." required>
-  </div>
-
-  <div class="input-field">
-    <label for="address">주소<span style="color: red;">*</span></label>
-    <input id="address" name="address" type="text" placeholder="주소를 입력하세요." required>
-  </div>
-
-  <div class="input-field">
-    <label for="doorcode">공동현관 비밀번호<span style="color: red;">*</span></label>
-    <input id="doorcode" name="doorcode" type="text" placeholder="공동현관 비밀번호를 입력하세요.">
-  </div>
-
-  <div class="input-field">
-    <label for="delivery-request">배송 관련 요청사항</label>
-    <textarea id="delivery-request" name="delivery-request" rows="4" placeholder="배송에 대한 요청사항을 입력하세요."></textarea>
-  </div>
-
-<!-- 배송지 불러오기 버튼 -->
-    <div class="text-center mt-4">
-      <button type="button" id="load-address-btn" class="btn btn-secondary" onclick="loadAddress()">배송지 불러오기</button>
-      <button type="button" id="save-address-btn" class="btn btn-primary" onclick="saveAddress()">배송지 저장</button>
-    </div>
 
   <div class="separator"></div>
 
-  <!-- 결제 섹션 -->
+  <!-- 배송지 입력 -->
+  <div class="input-field"><label for="phone">휴대폰 번호 *</label><input id="phone" required></div>
+  <div class="input-field"><label for="name">이름 *</label><input id="name" required></div>
+  <div class="input-field"><label for="zipcode">우편번호</label><input id="zipcode"></div>
+  <div class="input-field"><label for="address">주소 *</label><input id="address" required></div>
+  <div class="input-field"><label for="doorcode">공동현관 비밀번호 *</label><input id="doorcode" required></div>
+  <div class="input-field"><label for="delivery-request">배송 요청사항</label><textarea id="delivery-request" rows="4"></textarea></div>
+
+  <button type="button" id="load-address-btn" onclick="loadAddress()">배송지 불러오기</button>
+
+  <div class="separator"></div>
+
+  <!-- 결제 방법 -->
   <div class="payment-section">
-    <div class="section-title">결제 방법</div>
+    <label for="payment-method">결제 방법</label>
+    <select id="payment-method" onchange="togglePaymentDetails()">
+      <option value="card">카드 결제</option>
+      <option value="bank_transfer">계좌이체</option>
+    </select>
 
-    <!-- 결제 방법 선택 -->
-    <div class="payment-method">
-      <label for="payment-method">결제 방법</label>
-      <select id="payment-method" name="payment-method" onchange="togglePaymentDetails()">
-        <option value="card">카드 결제</option>
-        <option value="bank_transfer">계좌이체</option>
-      </select>
-    </div>
-
-    <!-- 계좌이체 관련 정보 입력 -->
     <div class="payment-details" id="bank-transfer-details">
-      <div class="input-field">
-        <label for="payer-name">입금자명<span style="color: red;">*</span></label>
-        <input id="payer-name" name="payer-name" type="text" placeholder="입금자명을 입력하세요." required>
-      </div>
-
-      <div class="input-field">
-        <label for="cash-receipt">현금영수증</label>
-        <input id="cash-receipt" name="cash-receipt" type="text" placeholder="휴대폰번호 또는 사업자 번호를 입력해주세요.">
-      </div>
+      <div class="input-field"><label for="payer-name">입금자명 *</label><input id="payer-name"></div>
+      <div class="input-field"><label for="cash-receipt">현금영수증</label><input id="cash-receipt"></div>
     </div>
   </div>
-<!-- 주문 버튼 영역 -->
-<div style="position: sticky; bottom: 0; background: white; padding: 1.5rem; border-top: 2px solid #ddd; text-align: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
+</form>
 
-  <!-- 총합 / 총중량 다시 한번 고지 -->
-  <div style="margin-bottom: 10px; font-size: 20px; font-weight: bold; color: #333;">
+<!-- 주문 버튼 -->
+<div class="sticky-footer">
+  <div style="margin-bottom: 10px; font-size: 20px; font-weight: bold;">
     총 합계: <span id="bottom-total-price">0</span>원 / 총 중량: <span id="bottom-total-weight">0</span>g
   </div>
-
-  <!-- 주문 버튼 -->
-  <button id="submit-btn" style="
-    font-size: 24px;
-    padding: 18px 40px;
-    background-color: #ff6600;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease;
-  " disabled>
-    ✅ 주문하기
-  </button>
-
+  <button id="submit-btn" disabled>✅ 주문하기</button>
 </div>
-</form>
+
+<!-- JS 영역 -->
 <script>
-    // 배송지 정보 저장
-    function saveAddress() {
-      const name = document.getElementById('name').value;
-      const phone = document.getElementById('phone').value;
-      const address = document.getElementById('address').value;
-      const doorcode = document.getElementById('doorcode').value;
+  function saveAddress() {
+    const info = {
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone').value,
+      address: document.getElementById('address').value,
+      doorcode: document.getElementById('doorcode').value
+    };
+    localStorage.setItem('addressInfo', JSON.stringify(info));
+    alert('배송지가 저장되었습니다.');
+  }
 
-      const addressInfo = { name, phone, address, doorcode };
-
-      localStorage.setItem('addressInfo', JSON.stringify(addressInfo));
-      alert('배송지가 저장되었습니다.');
+  function loadAddress() {
+    const saved = localStorage.getItem('addressInfo');
+    if (saved) {
+      const info = JSON.parse(saved);
+      document.getElementById('name').value = info.name;
+      document.getElementById('phone').value = info.phone;
+      document.getElementById('address').value = info.address;
+      document.getElementById('doorcode').value = info.doorcode;
+      alert('배송지가 불러와졌습니다.');
+    } else {
+      alert('저장된 배송지가 없습니다.');
     }
+  }
 
-    // 배송지 정보 불러오기
-    function loadAddress() {
-      const savedAddress = localStorage.getItem('addressInfo');
-      if (savedAddress) {
-        const addressInfo = JSON.parse(savedAddress);
-        document.getElementById('name').value = addressInfo.name;
-        document.getElementById('phone').value = addressInfo.phone;
-        document.getElementById('address').value = addressInfo.address;
-        document.getElementById('doorcode').value = addressInfo.doorcode;
-        alert('배송지가 불러와졌습니다.');
-      } else {
-        alert('저장된 배송지가 없습니다.');
-      }
-    }
+  function togglePaymentDetails() {
+    const method = document.getElementById('payment-method').value;
+    const bankDetails = document.getElementById('bank-transfer-details');
+    bankDetails.style.display = (method === 'bank_transfer') ? 'block' : 'none';
+  }
 
-    const nameInput = document.getElementById("name");
-    const phoneInput = document.getElementById("phone");
-    const addressInput = document.getElementById("address");
-    const submitBtn = document.getElementById("submit-btn");
-    const quantityInputs = document.querySelectorAll("input[type='number']");
-
-    function validateForm() {
-      const name = nameInput.value.trim();
-      const phone = phoneInput.value.trim();
-      const address = addressInput.value.trim();
-
-      // 수량이 하나라도 1 이상인지 확인
-      const hasAtLeastOneQuantity = Array.from(quantityInputs).some(input => parseInt(input.value) > 0);
-
-      const allValid = name !== "" && phone !== "" && address !== "" && hasAtLeastOneQuantity;
-
-      submitBtn.disabled = !allValid;
-    }
-
-    // 모든 인풋 이벤트에 validateForm 연결
-    [nameInput, phoneInput, addressInput, ...quantityInputs].forEach(input => {
-      input.addEventListener("input", validateForm);
-    });
-  </script>
-</body>
-</html>
-  <script>
-const menuItems = {
-  "삼겹살": { price: 2967 },
-  "오겹살": { price: 3134 },
-  "목살": { price: 2634 },
-  "앞다리살": { price: 1650 },
-  "찌게용": { price: 1650 },
-  "등갈비": { price: 2967 },
-  "갈빗대벌집삼겹살": { price: 3300 },
-  "생 대패삼겹살": { price: 2967 },
-  "돈 등심": { price: 1650 },
-  "돈 안심": { price: 1650 },
-  "항정살": { price: 6500 },
-  "가브리살(등심덧살)": { price: 5500 },
-  "갈매기살": { price: 5000 },
-  "꼬들살": { price: 3800 },
-  "앞 사태(껍질o)": { price: 1967 },
-  "돼지갈비": { price: 1650 },
-  "한우 꽃등심": { price: 18800 },
-  "한우 채끝등심": { price: 18000 },
-  "한우 안심": { price: 18800 },
-  "한우 치마살": { price: 21800 },
-  "한우 살치살": { price: 21800 },
-  "한우 꽃갈비살": { price: 21800 },
-  "한우 부채살": { price: 18000 },
-  "한우 업진살": { price: 18000 },
-  "한우 갈비살": { price: 18000 },
-  "한우 제비추리": { price: 18000 },
-  "한우 안창살": { price: 29800 },
-  "한우 토시살": { price: 21800 },
-  "한우 양지 국거리": { price: 7500 },
-  "한우 목심 양지": { price: 6000 },
-  "한우 사태": { price: 5000 },
-  "한우 우둔살": { price: 7000 },
-  "한우 다짐육": { price: 7000 },
-  "한우 육회": { price: 7500 }
-};
-
-let cart = [];
-
-function changeQuantity(itemId, delta) {
-  const input = document.getElementById(itemId);
-  let currentValue = parseFloat(input.value) || 0;
-  currentValue += delta;
-  if (currentValue < 0) currentValue = 0;
-  input.value = currentValue;
-  input.dispatchEvent(new Event('input'));
-}
-
-function updateCart() {
-  const cartList = document.getElementById("cart-list");
-  const totalPriceElem = document.getElementById("total-price");
-  const totalWeightElem = document.getElementById("total-weight");
-  const bottomTotalPriceElem = document.getElementById("bottom-total-price");
-  const bottomTotalWeightElem = document.getElementById("bottom-total-weight");
-
-  cartList.innerHTML = '';
-  let total = 0;
-  let totalGram = 0;
-  cart = [];
-
-  const inputs = document.querySelectorAll('input[type="number"]');
-  inputs.forEach(input => {
-    const itemName = input.name;
-    const itemQuantity = parseFloat(input.value) || 0;
-
-    if (itemQuantity > 0 && menuItems[itemName]) {
-      const itemPrice = menuItems[itemName].price;
-      const productTotal = itemPrice * itemQuantity;
-      const productTotalRounded = Math.floor(productTotal / 100) * 100;
-
-      const item = {
-        name: itemName,
-        price: itemPrice,
-        quantity: itemQuantity
-      };
-      cart.push(item);
-
-      total += productTotalRounded;
-      totalGram += itemQuantity * 100; // 1개당 100g
-
-      const cartItem = document.createElement("div");
-      cartItem.classList.add("cart-item");
-      cartItem.innerHTML = `
-        <span>${item.name} - ${item.price}원 (중량: ${item.quantity * 100}g) → <strong>${productTotalRounded.toLocaleString()}원</strong></span>
-        <span class="remove-item" onclick="removeFromCart('${item.name}')">🗑️</span>
-      `;
-      cartList.appendChild(cartItem);
-    }
-  });
-
-  totalPriceElem.innerText = total.toLocaleString();
-  totalWeightElem.innerText = totalGram.toLocaleString();
-  bottomTotalPriceElem.innerText = total.toLocaleString();
-  bottomTotalWeightElem.innerText = totalGram.toLocaleString();
-}
-
-function removeFromCart(name) {
-  const input = document.querySelector(`input[name="${name}"]`);
-  if (input) {
-    input.value = 0;
+  function changeQuantity(id, delta) {
+    const input = document.getElementById(id);
+    let val = parseFloat(input.value) || 0;
+    input.value = Math.max(0, val + delta);
     input.dispatchEvent(new Event('input'));
   }
-}
 
-function togglePaymentDetails() {
-  const paymentMethod = document.getElementById('payment-method').value;
-  const bankTransferDetails = document.getElementById('bank-transfer-details');
-  
-  if (paymentMethod === 'bank_transfer') {
-    bankTransferDetails.style.display = 'block';
-  } else {
-    bankTransferDetails.style.display = 'none';
+  function updateCart() {
+    const menuItems = {{ menu_items | safe }};
+    const inputs = document.querySelectorAll('input[type="number"]');
+    let total = 0, totalGram = 0;
+    const cartList = document.getElementById('cart-list');
+    cartList.innerHTML = '';
+
+    inputs.forEach(input => {
+      const name = input.name;
+      const qty = parseFloat(input.value) || 0;
+      if (qty > 0 && menuItems[name]) {
+        const price = menuItems[name].price;
+        const subtotal = Math.floor(price * qty / 100) * 100;
+        total += subtotal;
+        totalGram += qty * 100;
+        cartList.innerHTML += `<div class="cart-item">
+          <span>${name} (중량: ${qty * 100}g) → <strong>${subtotal.toLocaleString()}원</strong></span>
+          <span class="remove-item" onclick="removeFromCart('${name}')">🗑️</span>
+        </div>`;
+      }
+    });
+
+    document.getElementById('total-price').innerText = total.toLocaleString();
+    document.getElementById('total-weight').innerText = totalGram.toLocaleString();
+    document.getElementById('bottom-total-price').innerText = total.toLocaleString();
+    document.getElementById('bottom-total-weight').innerText = totalGram.toLocaleString();
+
+    validateForm();
   }
-}
+
+  function removeFromCart(name) {
+    const input = document.querySelector(`input[name="${name}"]`);
+    if (input) {
+      input.value = 0;
+      input.dispatchEvent(new Event('input'));
+    }
+  }
+
+  function validateForm() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const quantities = [...document.querySelectorAll('input[type="number"]')];
+    const hasQty = quantities.some(input => parseFloat(input.value) > 0);
+    document.getElementById('submit-btn').disabled = !(name && phone && address && hasQty);
+  }
+
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input', validateForm);
+  });
 </script>
 
+</body>
+</html>
