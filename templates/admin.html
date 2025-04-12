@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>주문 목록</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f8f8f8;
+        }
+        form {
+            display: inline;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 0 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>홍박사 양념돼지갈비 - 주문 목록</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>주문시간</th>
+                <th>이름</th>
+                <th>주소</th>
+                <th>전화번호</th>
+                <th>상품</th>
+                <th>수량</th>
+                <th>상태</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.time }}</td>
+                <td>{{ order.name }}</td>
+                <td>{{ order.address }}</td>
+                <td>{{ order.phone }}</td>
+                <td>{{ order.product }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>
+                    <form method="post" action="/admin/update_status">
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                        <input type="hidden" name="direction" value="prev">
+                        <button type="submit">⬅️</button>
+                    </form>
+                    {{ order.status }}
+                    <form method="post" action="/admin/update_status">
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                        <input type="hidden" name="direction" value="next">
+                        <button type="submit">➡️</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

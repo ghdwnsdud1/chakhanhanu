@@ -1,146 +1,70 @@
-from fastapi import FastAPI, Form, Request, Query
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
+from starlette.status import HTTP_303_SEE_OTHER
 import json
+import uuid
 import os
+from datetime import datetime
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# 주문 폼 페이지
-@app.get("/order-form", response_class=HTMLResponse)
+status_flow = ["결제 요청됨", "결제 완료됨", "배송 중", "배송 완료"]
+orders_file = "orders.json"
+
+def load_orders():
+    if not os.path.exists(orders_file):
+        return []
+    with open(orders_file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_orders(orders):
+    with open(orders_file, "w", encoding="utf-8") as f:
+        json.dump(orders, f, ensure_ascii=False, indent=2)
+
+# 🏠 홈 → 주문서 폼
+@app.get("/", response_class=HTMLResponse)
 async def order_form(request: Request):
     return templates.TemplateResponse("order_form.html", {"request": request})
 
-# 주문 저장
-@app.post("/order-form")
-async def create_order_form(
+# ✅ 주문 저장
+@app.post("/submit")
+async def submit_order(
+    request: Request,
     customer_name: str = Form(...),
-    phone_number: Optional[str] = Form(None),
+    phone_number: str = Form(...),
     address: str = Form(...),
-    item_samgyeop: int = Form(0),
-    item_moksal: int = Form(0),
-    item_galbi: int = Form(0),
+    item_samgyeop: int = Form(...),
+    item_moksal: int = Form(...),
+    item_galbi: int = Form(...)
 ):
-    order_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    items = []
-    if item_samgyeop > 0:
-        items.append(f"삼겹살 x {item_samgyeop}")
-    if item_moksal > 0:
-        items.append(f"목살 x {item_moksal}")
-    if item_galbi > 0:
-        items.append(f"갈비 x {item_galbi}")
-
-    if not items:
-        return {"message": "상품을 하나 이상 선택해주세요."}
-
-    order = {
-        "time": order_time,
-        "customer_name": customer_name,
-        "phone_number": phone_number,
+    orders = load_orders()
+    new_order = {
+        "id": str(uuid.uuid4()),
+        "name": customer_name,
         "address": address,
-        "items": items
+        "phone": phone_number,
+        "items": {
+            "삼겹살": item_samgyeop,
+            "목살": item_moksal,
+            "앞다리살": item_galbi
+        },
+        "status": status_flow[0],
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
+    orders.append(new_order)
+    save_orders(orders)
+    return RedirectResponse(url="/done", status_code=HTTP_303_SEE_OTHER)
 
-    # JSON 파일에 저장
-    if not os.path.exists("orders.json"):
-        with open("orders.json", "w", encoding="utf-8") as f:
-            json.dump([], f, ensure_ascii=False)
+# ✅ 주문 완료 안내
+@app.get("/done", response_class=HTMLResponse)
+async def done(request: Request):
+    return templates.TemplateResponse("done.html", {"request": request})
 
-    with open("orders.json", "r+", encoding="utf-8") as f:
-        data = json.load(f)
-        data.append(order)
-        f.seek(0)
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-    return {
-        "message": "주문이 저장되었습니다!",
-        "order": order
-    }
-
-# 주문 목록 페이지
+# ✅ 관리자 페이지 (주문 목록)
 @app.get("/orders", response_class=HTMLResponse)
-async def read_orders(request: Request, q: Optional[str] = Query(None)):
-    orders = []
-    try:
-        with open("orders.json", "r", encoding="utf-8") as f:
-            orders = json.load(f)
-    except FileNotFoundError:
-        pass
-
-    # 최신순 정렬
-    orders.sort(key=lambda x: x["time"], reverse=True)
-
-    # 검색 필터링
-    if q:
-        orders = [
-            o for o in orders
-            if q in o["customer_name"]
-            or q in o["address"]
-            or any(q in item for item in o["items"])
-        ]
-
-    return templates.TemplateResponse("orders.html", {
-        "request": request,
-        "orders": orders,
-        "query": q or ""
-    })
-
-# 주문 삭제
-@app.post("/delete-order")
-async def delete_order(order_time: str = Form(...)):
-    try:
-        with open("orders.json", "r", encoding="utf-8") as f:
-            orders = json.load(f)
-        new_orders = [o for o in orders if o["time"] != order_time]
-        with open("orders.json", "w", encoding="utf-8") as f:
-            json.dump(new_orders, f, ensure_ascii=False, indent=2)
-    except FileNotFoundError:
-        pass
-
-    return RedirectResponse(url="/orders", status_code=303)
-
-# 카카오 챗봇용 주문 모델
-class KakaoOrder(BaseModel):
-    customer_name: str
-    phone_number: str
-    address: str
-    item: str
-    quantity: int
-
-# 카카오 챗봇 연동
-@app.post("/order")
-def create_kakao_order(order: KakaoOrder):
-    order_data = order.dict()
-    order_data["time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    if not os.path.exists("orders.json"):
-        with open("orders.json", "w", encoding="utf-8") as f:
-            json.dump([], f, ensure_ascii=False)
-
-    with open("orders.json", "r+", encoding="utf-8") as f:
-        data = json.load(f)
-        data.append(order_data)
-        f.seek(0)
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-    return JSONResponse(content={
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleText": {
-                        "text": "주문이 접수되었습니다. 감사합니다! 😊"
-                    }
-                }
-            ]
-        }
-    })
-
-# 첫 페이지는 주문 폼으로 리디렉트
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return RedirectResponse(url="/order-form")
+async def order_list(request: Request):
+    orders = load_orders()
+    sorted_orders = sorted(orders, key=lambda x: x["time"], reverse=True)
+    return templates.TemplateResponse("orders.html", {"request": request, "orders": sorted_orders})
