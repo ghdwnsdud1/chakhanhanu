@@ -72,7 +72,7 @@ def save_orders(orders):
 
 @app.get("/", response_class=HTMLResponse)
 async def order_page(request: Request):
-    return templates.TemplateResponse("order.html", {
+    return templates.TemplateResponse("orders.html", {
         "request": request,
         "menu_items": menu_items
     })
@@ -80,7 +80,7 @@ async def order_page(request: Request):
 @app.get("/order-form", response_class=HTMLResponse)
 async def order_form(request: Request):
     print(menu_items)
-    return templates.TemplateResponse("order_form.html", {
+    return templates.TemplateResponse("orders.html", {
         "request": request,
         "menu_items": menu_items  # menu_items를 템플릿에 넘겨줌
     })
@@ -103,7 +103,7 @@ async def create_order_form(request: Request):
                 continue
 
     if not items:
-        return templates.TemplateResponse("order_form.html", {
+        return templates.TemplateResponse("orders.html", {
             "request": request,
             "menu_items": menu_items,
             "error": "상품을 하나 이상 선택해주세요."
