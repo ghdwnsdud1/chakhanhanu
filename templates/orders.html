@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <title>착한한우 주문서</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
-    /* 기본 스타일 */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #fefefe;
@@ -39,10 +37,6 @@
     .section {
       width: 45%;
     }
-    .section h2 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
     .item {
       display: flex;
       justify-content: space-between;
@@ -51,11 +45,6 @@
     }
     .name-price {
       flex-grow: 1;
-    }
-    .name-price small {
-      font-size: 14px;
-      color: #666;
-      margin-left: 4px;
     }
     .controls {
       display: flex;
@@ -83,41 +72,6 @@
       margin: 8px 0;
       align-items: center;
     }
-    .cart-item span {
-      font-size: 16px;
-    }
-    .remove-item {
-      cursor: pointer;
-      color: red;
-      font-size: 20px;
-    }
-    .input-field {
-      margin-bottom: 15px;
-    }
-    .input-field label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    .input-field input, .input-field textarea, select {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
-    .separator {
-      margin: 30px 0;
-      border-top: 1px solid #ddd;
-      padding-top: 20px;
-    }
-    .payment-section {
-      margin-top: 30px;
-    }
-    .payment-details {
-      display: none;
-      margin-top: 20px;
-    }
     .sticky-footer {
       position: sticky;
       bottom: 0;
@@ -135,52 +89,16 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      margin-top: 10px;
     }
     #submit-btn:disabled {
       background-color: #ccc;
       cursor: not-allowed;
     }
-    #load-address-btn {
-      width: 100%;
-      padding: 15px;
-      font-size: 18px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      cursor: pointer;
-    }
-    #load-address-btn:hover {
-      background-color: #0056b3;
-    }
-
-    /* 모바일 반응형 */
     @media (max-width: 768px) {
-      .category {
-        flex-direction: column;
-        align-items: center;
-      }
-      .section {
-        width: 90%;
-      }
-      .controls button {
-        width: 36px;
-        height: 36px;
-        font-size: 22px;
-      }
-      .controls input {
-        width: 50px;
-        font-size: 20px;
-      }
-      .cart-item span {
-        font-size: 18px;
-      }
-      #submit-btn {
-        font-size: 24px;
-        padding: 20px 40px;
-      }
+      .category { flex-direction: column; align-items: center; }
+      .section { width: 90%; }
+      .controls button { width: 36px; height: 36px; font-size: 22px; }
+      .controls input { width: 50px; font-size: 20px; }
     }
   </style>
 </head>
@@ -190,7 +108,7 @@
 <h1>🐷 착한한우 주문서 🐮</h1>
 
 <div class="notice">
-  <strong>공지사항:</strong> 주문 전에 반드시 상품 수량을 확인해 주세요. <br> 
+  <strong>공지사항:</strong> 주문 전에 반드시 상품 수량을 확인해 주세요.<br> 
   품절 상품은 주문 불가, 주문은 100g 단위입니다.
 </div>
 
@@ -220,190 +138,72 @@
     <h3>총 중량: <span id="total-weight">0</span>g</h3>
   </div>
 
-  <div class="separator"></div>
-
-  <!-- 요청사항 -->
-  <div class="input-field">
-    <label for="order-request">요청사항</label>
-    <textarea id="order-request" name="order-request" rows="4"></textarea>
-  </div>
-
-  <div class="separator"></div>
-
-  <!-- 배송지 입력 -->
-  <div class="input-field"><label for="phone">휴대폰 번호 *</label><input id="phone" required></div>
-  <div class="input-field"><label for="name">이름 *</label><input id="name" required></div>
-  <div class="input-field"><label for="zipcode">우편번호</label><input id="zipcode"></div>
-  <div class="input-field"><label for="address">주소 *</label><input id="address" required></div>
-  <div class="input-field"><label for="doorcode">공동현관 비밀번호 *</label><input id="doorcode" required></div>
-  <div class="input-field"><label for="delivery-request">배송 요청사항</label><textarea id="delivery-request" rows="4"></textarea></div>
-
-  <button type="button" id="load-address-btn" onclick="loadAddress()">배송지 불러오기</button>
-
-  <div class="separator"></div>
-
-  <!-- 결제 방법 -->
-  <div class="payment-section">
-    <label for="payment-method">결제 방법</label>
-    <select id="payment-method" onchange="togglePaymentDetails()">
-      <option value="card">카드 결제</option>
-      <option value="bank_transfer">계좌이체</option>
-    </select>
-
-    <div class="payment-details" id="bank-transfer-details">
-      <div class="input-field"><label for="payer-name">입금자명 *</label><input id="payer-name"></div>
-      <div class="input-field"><label for="cash-receipt">현금영수증</label><input id="cash-receipt"></div>
+  <div class="sticky-footer">
+    <div style="margin-bottom: 10px; font-size: 20px; font-weight: bold;">
+      총 합계: <span id="bottom-total-price">0</span>원 / 총 중량: <span id="bottom-total-weight">0</span>g
     </div>
+    <button id="submit-btn" disabled>✅ 주문하기</button>
   </div>
 </form>
 
-<!-- 주문 버튼 -->
-<div class="sticky-footer">
-  <div style="margin-bottom: 10px; font-size: 20px; font-weight: bold;">
-    총 합계: <span id="bottom-total-price">0</span>원 / 총 중량: <span id="bottom-total-weight">0</span>g
-  </div>
-  <button id="submit-btn" disabled>✅ 주문하기</button>
-</div>
-
-<!-- JS 영역 -->
 <script>
-  const cartList = document.getElementById("cart-list");
-  const totalPriceElem = document.getElementById("total-price");
-  const totalWeightElem = document.getElementById("total-weight");
-  const bottomTotalPriceElem = document.getElementById("bottom-total-price");
-  const bottomTotalWeightElem = document.getElementById("bottom-total-weight");
+let cart = [];
 
-  cartList.innerHTML = '';
+function updateCart() {
+  const menuItems = {{ menu_items | safe }};
+  const cartList = document.getElementById('cart-list');
+  const inputs = document.querySelectorAll('input[type="number"]');
   let total = 0;
   let totalGram = 0;
-  cart = [];
+  cartList.innerHTML = '';
 
-  const inputs = document.querySelectorAll('input[type="number"]');
   inputs.forEach(input => {
-    const itemName = input.name;
-    const itemQuantity = parseFloat(input.value) || 0;
+    const name = input.name;
+    const qty = parseFloat(input.value) || 0;
+    if (qty > 0 && menuItems[name]) {
+      const price = menuItems[name].price;
+      const subtotal = Math.floor(price * qty / 100) * 100;
+      total += subtotal;
+      totalGram += qty * 100;
 
-    if (itemQuantity > 0 && menuItems[itemName]) {
-      const itemPrice = menuItems[itemName].price;
-      const productTotal = itemPrice * itemQuantity;
-      const productTotalRounded = Math.floor(productTotal / 100) * 100;
-
-      const item = {
-        name: itemName,
-        price: itemPrice,
-        quantity: itemQuantity
-      };
-      cart.push(item);
-
-      total += productTotalRounded;
-      totalGram += itemQuantity * 100; // 1개당 100g
-
-      const cartItem = document.createElement("div");
-      cartItem.classList.add("cart-item");
-      cartItem.innerHTML = `
-        <span>${item.name} - ${item.price}원 (중량: ${item.quantity * 100}g) → <strong>${productTotalRounded.toLocaleString()}원</strong></span>
-        <span class="remove-item" onclick="removeFromCart('${item.name}')">🗑️</span>
-      `;
-      cartList.appendChild(cartItem);
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'cart-item';
+      itemDiv.innerHTML = `<span>${name} - ${qty * 100}g → <strong>${subtotal.toLocaleString()}원</strong></span> <span class="remove-item" onclick="removeFromCart('${name}')">🗑️</span>`;
+      cartList.appendChild(itemDiv);
     }
   });
 
-  // ✅ 총 합계, 총 중량 '위쪽' 업데이트
-  totalPriceElem.textContent = total.toLocaleString();
-  totalWeightElem.textContent = totalGram.toLocaleString();
-
-  // ✅ 총 합계, 총 중량 '아래쪽' 주문 버튼 위 업데이트
-  bottomTotalPriceElem.textContent = total.toLocaleString();
-  bottomTotalWeightElem.textContent = totalGram.toLocaleString();
+  document.getElementById('total-price').innerText = total.toLocaleString();
+  document.getElementById('total-weight').innerText = totalGram.toLocaleString();
+  document.getElementById('bottom-total-price').innerText = total.toLocaleString();
+  document.getElementById('bottom-total-weight').innerText = totalGram.toLocaleString();
+  validateForm();
 }
-  function saveAddress() {
-    const info = {
-      name: document.getElementById('name').value,
-      phone: document.getElementById('phone').value,
-      address: document.getElementById('address').value,
-      doorcode: document.getElementById('doorcode').value
-    };
-    localStorage.setItem('addressInfo', JSON.stringify(info));
-    alert('배송지가 저장되었습니다.');
-  }
 
-  function loadAddress() {
-    const saved = localStorage.getItem('addressInfo');
-    if (saved) {
-      const info = JSON.parse(saved);
-      document.getElementById('name').value = info.name;
-      document.getElementById('phone').value = info.phone;
-      document.getElementById('address').value = info.address;
-      document.getElementById('doorcode').value = info.doorcode;
-      alert('배송지가 불러와졌습니다.');
-    } else {
-      alert('저장된 배송지가 없습니다.');
-    }
-  }
+function changeQuantity(id, delta) {
+  const input = document.getElementById(id);
+  let val = parseFloat(input.value) || 0;
+  input.value = Math.max(0, val + delta);
+  input.dispatchEvent(new Event('input'));
+}
 
-  function togglePaymentDetails() {
-    const method = document.getElementById('payment-method').value;
-    const bankDetails = document.getElementById('bank-transfer-details');
-    bankDetails.style.display = (method === 'bank_transfer') ? 'block' : 'none';
-  }
-
-  function changeQuantity(id, delta) {
-    const input = document.getElementById(id);
-    let val = parseFloat(input.value) || 0;
-    input.value = Math.max(0, val + delta);
+function removeFromCart(name) {
+  const input = document.querySelector(`input[name="${name}"]`);
+  if (input) {
+    input.value = 0;
     input.dispatchEvent(new Event('input'));
   }
+}
 
-  function updateCart() {
-    const menuItems = {{ menu_items | safe }};
-    const inputs = document.querySelectorAll('input[type="number"]');
-    let total = 0, totalGram = 0;
-    const cartList = document.getElementById('cart-list');
-    cartList.innerHTML = '';
+function validateForm() {
+  const inputs = document.querySelectorAll('input[type="number"]');
+  const hasQty = Array.from(inputs).some(input => parseFloat(input.value) > 0);
+  document.getElementById('submit-btn').disabled = !hasQty;
+}
 
-    inputs.forEach(input => {
-      const name = input.name;
-      const qty = parseFloat(input.value) || 0;
-      if (qty > 0 && menuItems[name]) {
-        const price = menuItems[name].price;
-        const subtotal = Math.floor(price * qty / 100) * 100;
-        total += subtotal;
-        totalGram += qty * 100;
-        cartList.innerHTML += `<div class="cart-item">
-          <span>${name} (중량: ${qty * 100}g) → <strong>${subtotal.toLocaleString()}원</strong></span>
-          <span class="remove-item" onclick="removeFromCart('${name}')">🗑️</span>
-        </div>`;
-      }
-    });
-
-    document.getElementById('total-price').innerText = total.toLocaleString();
-    document.getElementById('total-weight').innerText = totalGram.toLocaleString();
-    document.getElementById('bottom-total-price').innerText = total.toLocaleString();
-    document.getElementById('bottom-total-weight').innerText = totalGram.toLocaleString();
-
-    validateForm();
-  }
-
-  function removeFromCart(name) {
-    const input = document.querySelector(`input[name="${name}"]`);
-    if (input) {
-      input.value = 0;
-      input.dispatchEvent(new Event('input'));
-    }
-  }
-
-  function validateForm() {
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const address = document.getElementById('address').value.trim();
-    const quantities = [...document.querySelectorAll('input[type="number"]')];
-    const hasQty = quantities.some(input => parseFloat(input.value) > 0);
-    document.getElementById('submit-btn').disabled = !(name && phone && address && hasQty);
-  }
-
-  document.querySelectorAll('input, textarea, select').forEach(el => {
-    el.addEventListener('input', validateForm);
-  });
+document.querySelectorAll('input, textarea, select').forEach(el => {
+  el.addEventListener('input', validateForm);
+});
 </script>
 
 </body>
