@@ -267,6 +267,56 @@
 
 <!-- JS 영역 -->
 <script>
+function updateCart() {
+  const cartList = document.getElementById("cart-list");
+  const totalPriceElem = document.getElementById("total-price");
+  const totalWeightElem = document.getElementById("total-weight");
+  const bottomTotalPriceElem = document.getElementById("bottom-total-price");
+  const bottomTotalWeightElem = document.getElementById("bottom-total-weight");
+
+  cartList.innerHTML = '';
+  let total = 0;
+  let totalGram = 0;
+  cart = [];
+
+  const inputs = document.querySelectorAll('input[type="number"]');
+  inputs.forEach(input => {
+    const itemName = input.name;
+    const itemQuantity = parseFloat(input.value) || 0;
+
+    if (itemQuantity > 0 && menuItems[itemName]) {
+      const itemPrice = menuItems[itemName].price;
+      const productTotal = itemPrice * itemQuantity;
+      const productTotalRounded = Math.floor(productTotal / 100) * 100;
+
+      const item = {
+        name: itemName,
+        price: itemPrice,
+        quantity: itemQuantity
+      };
+      cart.push(item);
+
+      total += productTotalRounded;
+      totalGram += itemQuantity * 100; // 1개당 100g
+
+      const cartItem = document.createElement("div");
+      cartItem.classList.add("cart-item");
+      cartItem.innerHTML = `
+        <span>${item.name} - ${item.price}원 (중량: ${item.quantity * 100}g) → <strong>${productTotalRounded.toLocaleString()}원</strong></span>
+        <span class="remove-item" onclick="removeFromCart('${item.name}')">🗑️</span>
+      `;
+      cartList.appendChild(cartItem);
+    }
+  });
+
+  // ✅ 총 합계, 총 중량 '위쪽' 업데이트
+  totalPriceElem.textContent = total.toLocaleString();
+  totalWeightElem.textContent = totalGram.toLocaleString();
+
+  // ✅ 총 합계, 총 중량 '아래쪽' 주문 버튼 위 업데이트
+  bottomTotalPriceElem.textContent = total.toLocaleString();
+  bottomTotalWeightElem.textContent = totalGram.toLocaleString();
+}
   function saveAddress() {
     const info = {
       name: document.getElementById('name').value,
