@@ -6,6 +6,7 @@ from typing import Optional
 from datetime import datetime
 import json
 import os
+from menus import menu_items
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -42,7 +43,12 @@ async def order_page(request: Request, q: Optional[str] = Query(None)):
             or any(q in item for item in o.get("items", []))
         ]
 
-    return templates.TemplateResponse("orders.html", {"request": request, "orders": orders, "query": q or ""})
+    return templates.TemplateResponse("orders.html", {
+"request": request,
+ "orders": orders, 
+"query": q or "",
+"menu_items": menu_items
+})
 
 @app.get("/order-form", response_class=HTMLResponse)
 async def order_form(request: Request):
