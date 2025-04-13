@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>착한한우 고기 주문서</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    select, input[type="number"], input[type="text"], textarea, button {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 18px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:disabled {
+      background-color: #ccc;
+    }
+    .important {
+      color: red;
+      margin-left: 5px;
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .button-group button {
+      flex: 1;
+    }
+    #selectedItems, #requestSection, #addressSection, #paymentSection, #finalSection {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .item {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .item-buttons {
+      display: flex;
+      gap: 5px;
+    }
+    .action-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    #finalAmount {
+      font-size: 28px;
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🐮 착한한우 🐷</h1>
+<h2>고기 주문서</h2>
+
+<!-- 돼지고기 -->
+<h2>🐷 돼지고기 선택</h2>
+<select id="porkSelect">
+  <option value="">-- 부위 선택 --</option>
+</select>
+<input type="number" id="porkWeight" placeholder="중량 (10g 단위)" step="10" min="10">
+<button type="button" onclick="addItem('pork')">추가하기</button>
+
+<!-- 소고기 -->
+<h2>🐮 소고기 선택</h2>
+<select id="beefSelect">
+  <option value="">-- 부위 선택 --</option>
+</select>
+<input type="number" id="beefWeight" placeholder="중량 (10g 단위)" step="10" min="10">
+<button type="button" onclick="addItem('beef')">추가하기</button>
+
+<h2>🍖 양념육 선택</h2>
+<select id="marinatedSelect">
+  <option value="">-- 양념육을 선택하세요 --</option>
+  <option value="한우 사골곰탕">한우 사골곰탕 (6,000원)</option>
+  <option value="한우 고기듬뿍 사골곰탕">한우 고기듬뿍 사골곰탕 (10,000원)</option>
+  <option value="고추장 순살 닭갈비" disabled>고추장 순살 닭갈비 700g (9,900원) - 품절</option>
+  <option value="한돈 고추장 불고기" disabled>한돈 고추장 불고기 800g (8,900원) - 품절</option>
+  <option value="한돈 생 양념목살" disabled>한돈 생 양념목살 900g (14,800원) - 품절</option>
+  <option value="한우 1++ 찹스테이크" disabled>한우 1++ 찹스테이크 360g (16,800원) - 품절</option>
+  <option value="너를 꽁 찜닭" disabled>너를 꽁 찜닭 고기만 800g (10,800원) - 품절</option>
+</select>
+<input type="number" id="marinatedWeight" placeholder="수량 (1개 단위)" min="1" step="1">
+<button type="button" onclick="addItem('marinated')">추가하기</button>
+
+<hr>
+
+<div id="selectedItems">
+  <h2>🛒 선택한 상품</h2>
+  <div id="itemsList"></div>
+  <div id="totalWeight">총 중량: 0g</div>
+  <div id="totalPrice">총 금액: 0원</div>
+</div>
+
+<hr>
+
+<div id="requestSection">
+  <h2>📝 요청사항</h2>
+  <textarea id="request" placeholder="추가 요청사항을 입력하세요" rows="4"></textarea>
+</div>
+
+<hr>
+
+<div class="button-group">
+  <button type="button" onclick="saveAddress()">📥 배송지 저장</button>
+  <button type="button" onclick="loadAddress()">📤 배송지 불러오기</button>
+</div>
+
+<div id="addressSection">
+  <h2>📦 배송지 입력</h2>
+  <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)"> <span class="important">*</span>
+  <input type="text" id="name" placeholder="이름"> <span class="important">*</span>
+  <input type="text" id="address" placeholder="주소"> <span class="important">*</span>
+  <input type="text" id="doorcode" placeholder="공동현관 비밀번호"> <span class="important">*</span>
+  <textarea id="deliveryRequest" placeholder="배송 요청사항 (선택)" rows="3"></textarea>
+</div>
+
+<hr>
+
+<div id="paymentSection">
+  <h2>💳 결제 방법</h2>
+  <select id="paymentMethod" onchange="togglePaymentFields()">
+    <option value="">-- 결제 방법 선택 --</option>
+    <option value="account">계좌이체</option>
+    <option value="card">카드결제</option>
+  </select> <span class="important">*</span>
+
+  <div id="accountFields" style="display:none;">
+    <input type="text" id="depositorName" placeholder="입금자명"> <span class="important">*</span>
+    <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
+  </div>
+</div>
+
+<hr>
+
+<div id="finalSection">
+  <h2>🧾 총 결제 금액</h2>
+  <div id="finalAmount">0원</div>
+  <button id="submitButton" type="submit" disabled>결제하기</button>
+</div>
+
+<script>
+// 1. 고기, 양념육 가격표 먼저 정의
+const porkList = {
+  "삼겹살": 2967, "오겹살": 3134, "목살": 2634, "앞다리살": 1650, "찌개용": 1650,
+  "등갈비": 2967, "갈빗대벌집삼겹살": 3300, "생 대패삼겹살": 2967, "돈 등심": 1650,
+  "돈 안심": 1650, "항정살": 6500, "가브리살(등심덧살)": 5500, "갈매기살": 5000,
+  "꼬들살": 3800, "앞 사태(껍질O)": 1967, "돼지갈비": 1650
+};
+const beefList = {
+  "한우 꽃등심": 18800, "한우 채끝등심": 18000, "한우 안심": 18800, "한우 치마살": 21800,
+  "한우 살치살": 21800, "한우 꽃갈비살": 21800, "한우 부채살": 18000, "한우 업진살": 18000,
+  "한우 갈비살": 18000, "한우 제비추리": 18000, "한우 안창살": 29800, "한우 토시살": 21800,
+  "한우 양지 국거리": 7500, "한우 목심 양지": 6000, "한우 사태": 5000,
+  "한우 우둔살": 7000, "한우 다짐육": 7000, "한우 육회": 7500
+};
+const marinatedList = {
+  "한우 사골곰탕": 6000,
+  "한우 고기듬뿍 사골곰탕": 10000,
+  "고추장 순살 닭갈비": 9900,
+  "한돈 고추장 불고기": 8900,
+  "한돈 생 양념목살": 14800,
+  "한우 1++ 찹스테이크": 16800,
+  "너를 꽁 찜닭": 10800
+};
+
+let selectedItems = [];
+
+// --- 드롭다운 채우기 ---
+for (let meat in porkList) {
+  let opt = document.createElement('option');
+  opt.value = meat;
+  opt.textContent = `${meat} (100g ${porkList[meat]}원)`;
+  document.getElementById('porkSelect').appendChild(opt);
+}
+for (let meat in beefList) {
+  let opt = document.createElement('option');
+  opt.value = meat;
+  opt.textContent = `${meat} (100g ${beefList[meat]}원)`;
+  document.getElementById('beefSelect').appendChild(opt);
+}
+
+
+// --- 이제 진짜 addItem 함수 정의 ---
+function addItem(type) {
+  let select, weightInput, priceList;
+  
+  if (type === 'pork') {
+    select = document.getElementById('porkSelect');
+    weightInput = document.getElementById('porkWeight');
+    priceList = porkList;
+  } else if (type === 'beef') {
+    select = document.getElementById('beefSelect');
+    weightInput = document.getElementById('beefWeight');
+    priceList = beefList;
+  } else if (type === 'marinated') {
+    select = document.getElementById('marinatedSelect');
+    weightInput = document.getElementById('marinatedWeight');
+    priceList = marinatedList;
+  }
+
+  const meat = select.value;
+  let weight = 0;
+
+  if (type === 'marinated') {
+    weight = parseInt(weightInput.value);
+    if (isNaN(weight) || weight <= 0) {
+      alert('수량을 정확히 입력해주세요!');
+      return;
+    }
+  } else {
+    weight = parseInt(weightInput.value);
+    if (isNaN(weight) || weight <= 0 || weight % 10 !== 0) {
+      alert('중량을 10g 단위로 입력해주세요!');
+      return;
+    }
+  }
+
+  const pricePerUnit = priceList[meat];
+  const existing = selectedItems.find(item => item.meat === meat);
+
+  if (existing) {
+    existing.weight += weight;
+  } else {
+    selectedItems.push({ meat, weight, pricePerUnit, type });
+  }
+
+  if (weightInput) weightInput.value = "";
+  if (select) select.value = "";
+
+  updateList();
+
+}
+
+
+function updateList() {
+  const itemsList = document.getElementById('itemsList');
+  itemsList.innerHTML = '';
+
+  let totalWeight = 0;
+  let totalCount = 0;  // ✨ 추가
+  let totalPrice = 0;
+
+  selectedItems.forEach((item, index) => {
+    let itemPrice = 0;
+    if (item.type === 'marinated') {
+      itemPrice = item.weight * item.pricePerUnit;
+      totalCount += item.weight;   // ✨ 양념육은 수량 누적
+    } else {
+      itemPrice = Math.floor(item.weight * item.pricePerUnit / 100);
+      totalWeight += item.weight;  // ✨ 고기는 중량 누적
+    }
+
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      ${item.meat} - ${item.weight}${item.type === 'marinated' ? '개' : 'g'} - ${itemPrice.toLocaleString()}원
+      <div class="item-buttons">
+        <button class="action-btn" onclick="editItem(${index})">✏️</button>
+        <button class="action-btn" onclick="removeItem(${index})">🗑️</button>
+      </div>
+    `;
+    itemsList.appendChild(div);
+
+    totalPrice += itemPrice;
+  });
+
+  const roundedPrice = Math.floor(totalPrice / 100) * 100;
+  
+  // ✨ 중량과 수량을 따로 표시
+  document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight}g / 총 수량: ${totalCount}개`;
+  document.getElementById('totalPrice').textContent = `총 금액: ${roundedPrice.toLocaleString()}원`;
+  document.getElementById('finalAmount').textContent = `${roundedPrice.toLocaleString()}원`;
+
+  checkSubmitEnabled();  // ✨ 여기 추가!
+}
+
+function editItem(index) {
+  const item = selectedItems[index];
+  const message = item.type === 'marinated' ? "새 수량 (개 단위)" : "새 중량 (10g 단위)";
+  const newWeight = prompt(message, item.weight);
+  
+  if (newWeight !== null) {
+    const parsed = parseInt(newWeight);
+    if (!isNaN(parsed)) {
+      if (item.type === 'marinated' || parsed % 10 === 0) {
+        selectedItems[index].weight = parsed;
+        updateList();
+      } else {
+        alert("고기는 10g 단위로 입력해야 합니다.");
+      }
+    } else {
+      alert("숫자를 입력해주세요.");
+    }
+  }
+}
+
+function removeItem(index) {
+  selectedItems.splice(index, 1);
+  updateList();
+}
+
+function togglePaymentFields() {
+  const method = document.getElementById('paymentMethod').value;
+  document.getElementById('accountFields').style.display = method === 'account' ? 'block' : 'none';
+}
+
+function saveAddress() {
+  const info = {
+    contact: document.getElementById('contact').value,
+    name: document.getElementById('name').value,
+    address: document.getElementById('address').value,
+    doorcode: document.getElementById('doorcode').value,
+    deliveryRequest: document.getElementById('deliveryRequest').value
+  };
+  localStorage.setItem('shippingInfo', JSON.stringify(info));
+  alert('배송지가 저장되었습니다!');
+}
+
+function loadAddress() {
+  const saved = localStorage.getItem('shippingInfo');
+  if (saved) {
+    const info = JSON.parse(saved);
+    document.getElementById('contact').value = info.contact || '';
+    document.getElementById('name').value = info.name || '';
+    document.getElementById('address').value = info.address || '';
+    document.getElementById('doorcode').value = info.doorcode || '';
+    document.getElementById('deliveryRequest').value = info.deliveryRequest || '';
+    alert('배송지를 불러왔습니다!');
+  } else {
+    alert('저장된 배송지가 없습니다.');
+  }
+}
+
+document.getElementById('contact').addEventListener('input', function(e) {
+  let num = e.target.value.replace(/\D/g, '');
+  if (num.length < 4) e.target.value = num;
+  else if (num.length < 8) e.target.value = `${num.slice(0, 3)}-${num.slice(3)}`;
+  else e.target.value = `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7, 11)}`;
+});
+
+document.getElementById('submitButton').addEventListener('click', submitOrder);
+
+function submitOrder() {
+  const orderData = {
+    items: selectedItems,
+    totalAmount: document.getElementById('finalAmount').innerText,
+    contact: document.getElementById('contact').value,
+    name: document.getElementById('name').value,
+    address: document.getElementById('address').value,
+    doorcode: document.getElementById('doorcode').value,
+    requestMessage: document.getElementById('request').value,
+    deliveryRequest: document.getElementById('deliveryRequest').value,
+    paymentMethod: document.getElementById('paymentMethod').value,
+    depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
+    cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''   // ✨ 추가!!
+  };
+
+  fetch('/submit-order', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert('주문이 완료되었습니다!');
+    console.log(data);
+  })
+  .catch(error => {
+    alert('주문 실패 😥');
+    console.error(error);
+  });
+}
+function checkSubmitEnabled() {
+  const hasItems = selectedItems.length > 0;
+  const hasContact = document.getElementById('contact').value.trim() !== '';
+  const hasName = document.getElementById('name').value.trim() !== '';
+  const hasAddress = document.getElementById('address').value.trim() !== '';
+  const hasPayment = document.getElementById('paymentMethod').value.trim() !== '';
+
+  const submitButton = document.getElementById('submitButton');
+  submitButton.disabled = !(hasItems && hasContact && hasName && hasAddress && hasPayment);
+}
+
+document.getElementById('contact').addEventListener('input', checkSubmitEnabled);
+document.getElementById('name').addEventListener('input', checkSubmitEnabled);
+document.getElementById('address').addEventListener('input', checkSubmitEnabled);
+document.getElementById('paymentMethod').addEventListener('change', checkSubmitEnabled);
+
+
+</script>
+
+</body>
+</html>

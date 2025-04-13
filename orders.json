@@ -1,11 +1,58 @@
 [
   {
-    "time": "2025-04-11 20:56:05",
-    "customer_name": "홍준영",
-    "phone_number": "01057420640",
-    "address": "시흥시 대야동",
     "items": [
-      "삼겹살 x 2"
-    ]
+      {
+        "meat": "삼겹살",
+        "weight": 200,
+        "pricePerUnit": 2967,
+        "type": "pork"
+      },
+      {
+        "meat": "한우 사골곰탕",
+        "weight": 2,
+        "pricePerUnit": 6000,
+        "type": "marinated"
+      }
+    ],
+    "totalAmount": "17,900원",
+    "contact": "010-5742-0640",
+    "name": "홍준영",
+    "address": "시흥시 대야동",
+    "doorcode": "2134",
+    "requestMessage": "asdasdasdas",
+    "deliveryRequest": "",
+    "paymentMethod": "card",
+    "depositorName": "",
+    "cashReceipt": "",
+    "timestamp": "2025-04-13 16:36:42",
+    "is_paid": false
+  },
+  {
+    "items": [
+      {
+        "meat": "삼겹살",
+        "weight": 200,
+        "pricePerUnit": 2967,
+        "type": "pork"
+      },
+      {
+        "meat": "한우 사골곰탕",
+        "weight": 2,
+        "pricePerUnit": 6000,
+        "type": "marinated"
+      }
+    ],
+    "totalAmount": "17,900원",
+    "contact": "010-5742-0640",
+    "name": "홍준영",
+    "address": "시흥시 대야동",
+    "doorcode": "2134",
+    "requestMessage": "asdasdasdas",
+    "deliveryRequest": "asd",
+    "paymentMethod": "card",
+    "depositorName": "",
+    "cashReceipt": "",
+    "timestamp": "2025-04-13 16:36:58",
+    "is_paid": false
   }
 ]
