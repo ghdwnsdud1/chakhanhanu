@@ -14,43 +14,48 @@
     h1, h2 {
       text-align: center;
     }
-    select, input[type="number"], button, textarea, input[type="text"] {
-      margin: 10px 0;
+    select, input[type="number"], input[type="text"], textarea, button {
+      width: 90%;
       padding: 12px;
+      margin: 10px 0;
       font-size: 18px;
-      width: 100%;
       box-sizing: border-box;
-      border-radius: 8px;
       border: 1px solid #ccc;
+      border-radius: 8px;
     }
     button {
       background-color: #4CAF50;
       color: white;
       border: none;
       cursor: pointer;
-      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #45a049;
     }
     button:disabled {
       background-color: #ccc;
-      cursor: not-allowed;
     }
     .important {
       color: red;
       margin-left: 5px;
     }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .button-group button {
+      flex: 1;
+    }
     #selectedItems, #requestSection, #addressSection, #paymentSection, #finalSection {
       margin-top: 20px;
       padding: 15px;
-      border: 1px solid #ccc;
+      background: #f9f9f9;
       border-radius: 8px;
-      background-color: #f9f9f9;
+      border: 1px solid #ccc;
     }
     .item {
-      margin-bottom: 8px;
-      font-size: 16px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -65,15 +70,11 @@
       font-size: 20px;
       cursor: pointer;
     }
-    .button-group {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    hr {
-      margin: 30px 0;
-      border: 0;
-      border-top: 1px solid #ccc;
+    #finalAmount {
+      font-size: 28px;
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -81,34 +82,52 @@
 <body>
 
 <h1>🐮 착한한우 🐷</h1>
-
 <h2>고기 주문서</h2>
 
+<!-- 돼지고기 -->
 <h2>🐷 돼지고기 선택</h2>
 <select id="porkSelect">
-  <option value="">-- 돼지고기 부위를 선택하세요 --</option>
+  <option value="">-- 부위 선택 --</option>
 </select>
 <input type="number" id="porkWeight" placeholder="중량 (10g 단위)" step="10" min="10">
-<button onclick="addItem('pork')">추가하기</button>
+<button type="button" onclick="addItem('pork')">추가하기</button>
 
+<!-- 소고기 -->
 <h2>🐮 소고기 선택</h2>
 <select id="beefSelect">
-  <option value="">-- 소고기 부위를 선택하세요 --</option>
+  <option value="">-- 부위 선택 --</option>
 </select>
 <input type="number" id="beefWeight" placeholder="중량 (10g 단위)" step="10" min="10">
-<button onclick="addItem('beef')">추가하기</button>
+<button type="button" onclick="addItem('beef')">추가하기</button>
+
+<!-- 양념육 -->
+<h2>🍖 양념육 선택</h2>
+<select id="marinatedSelect">
+  <option value="">-- 양념육을 선택하세요 --</option>
+  <option value="한우 사골곰탕">한우 사골곰탕 (6,000원)</option>
+  <option value="한우 고기듬뿍 사골곰탕">한우 고기듬뿍 사골곰탕 (10,000원)</option>
+  <option value="고추장 순살 닭갈비" disabled>고추장 순살 닭갈비 700g (9,900원) - 품절</option>
+  <option value="한돈 고추장 불고기" disabled>한돈 고추장 불고기 800g (8,900원) - 품절</option>
+  <option value="한돈 생 양념목살" disabled>한돈 생 양념목살 900g (14,800원) - 품절</option>
+  <option value="한우 1++ 찹스테이크" disabled>한우 1++ 찹스테이크 360g (16,800원) - 품절</option>
+  <option value="너를 꽁 찜닭" disabled>너를 꽁 찜닭 고기만 800g (10,800원) - 품절</option>
+</select>
+<input type="number" id="marinatedWeight" placeholder="수량 (1개 단위)" min="1" step="1">
+<button type="button" onclick="addItem('marinated')">추가하기</button>
 
 <hr>
 
+<!-- 선택한 상품 -->
 <div id="selectedItems">
   <h2>🛒 선택한 상품</h2>
   <div id="itemsList"></div>
-  <div class="total" id="totalWeight">총 중량: 0g</div>
-  <div class="total" id="totalPrice">총 금액: 0원</div>
+  <div id="totalWeight">총 중량: 0g</div>
+  <div id="totalPrice">총 금액: 0원</div>
 </div>
 
 <hr>
 
+<!-- 요청사항 -->
 <div id="requestSection">
   <h2>📝 요청사항</h2>
   <textarea id="request" placeholder="추가 요청사항을 입력하세요" rows="4"></textarea>
@@ -116,79 +135,68 @@
 
 <hr>
 
+<!-- 배송지 저장/불러오기 -->
 <div class="button-group">
-  <button onclick="saveAddress()">📥 배송지 저장</button>
-  <button onclick="loadAddress()">📤 배송지 불러오기</button>
+  <button type="button" onclick="saveAddress()">📥 배송지 저장</button>
+  <button type="button" onclick="loadAddress()">📤 배송지 불러오기</button>
 </div>
 
+<!-- 배송지 입력 -->
 <div id="addressSection">
   <h2>📦 배송지 입력</h2>
-
-  <div style="display: flex; align-items: center; gap: 8px;">
-    <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" style="flex: 1 0 70%;">
-    <span class="important">*</span>
-  </div>
-  <small style="color: gray; font-size: 14px;">※ 연락처는 010-1234-5678 형식으로 입력해주세요.</small>
-
-  <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
-    <input type="text" id="name" placeholder="이름" style="flex: 1 0 70%;">
-    <span class="important">*</span>
-  </div>
-
-  <div style="display: flex; align-items: center; gap: 8px;">
-    <input type="text" id="address" placeholder="주소" style="flex: 1 0 70%;">
-    <span class="important">*</span>
-  </div>
-
-  <div style="display: flex; align-items: center; gap: 8px;">
-    <input type="text" id="doorcode" placeholder="공동현관 비밀번호" style="flex: 1 0 70%;">
-    <span class="important">*</span>
-  </div>
-
-  <textarea id="deliveryRequest" placeholder="배송 관련 요청사항 (선택)" rows="3" style="width: 100%; margin-top: 10px;"></textarea>
+  <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)"> <span class="important">*</span>
+  <input type="text" id="name" placeholder="이름"> <span class="important">*</span>
+  <input type="text" id="address" placeholder="주소"> <span class="important">*</span>
+  <input type="text" id="doorcode" placeholder="공동현관 비밀번호"> <span class="important">*</span>
+  <textarea id="deliveryRequest" placeholder="배송 요청사항 (선택)" rows="3"></textarea>
 </div>
 
 <hr>
 
+<!-- 결제 방법 -->
 <div id="paymentSection">
   <h2>💳 결제 방법</h2>
+  <select id="paymentMethod" onchange="togglePaymentFields()">
+    <option value="">-- 결제 방법 선택 --</option>
+    <option value="account">계좌이체</option>
+    <option value="card">카드결제</option>
+  </select> <span class="important">*</span>
 
-  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-    <select id="paymentMethod" onchange="togglePaymentFields()" style="flex: 1 0 70%;">
-      <option value="">-- 결제 방법을 선택하세요 --</option>
-      <option value="account">계좌이체</option>
-      <option value="card">카드결제</option>
-    </select>
-    <span class="important">*</span>
-  </div>
-
-  <div id="accountFields" style="display: none;">
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-      <input type="text" id="depositorName" placeholder="입금자명" style="flex: 1 0 70%;">
-      <span class="important">*</span>
-    </div>
-
-    <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)" style="width: 100%; margin-bottom: 10px;">
-  </div>
+  <div id="accountFields" style="display:none;">
+    <input type="text" id="depositorName" placeholder="입금자명"> <span class="important">*</span>
+    <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
+  
+<div id="consentSection" style="margin-top: 20px;">
+  <label style="font-size: 14px;">
+    <input type="checkbox" id="privacyConsent">
+    <b>[필수]</b> 개인정보 수집 및 이용에 동의합니다. (이름, 연락처, 주소, 공동현관 비밀번호 수집 / 배송 완료 후 30일 이내 파기)
+  </label>
+  <br>
+  <label style="font-size: 14px; margin-top: 10px; display: block;">
+    <input type="checkbox" id="refundConsent">
+    <b>[필수]</b> 환불 및 교환 정책에 동의합니다. (- 주문 완료 후 포장 준비가 시작되면 환불이 불가합니다.<br>
+    - 상품 하자(불량) 시 수령 후 24시간 이내 문의 주시면 교환 또는 환불해드립니다.<br>
+    - 문의 및 환불 요청: 카카오톡 또는 매장으로 전화 부탁드립니다 (031-500-8876))
+  </label>
+</div>
 </div>
 
 <hr>
 
-<div id="finalSection" style="text-align: center; margin-top: 20px;">
+<!-- 총 결제 금액 -->
+<div id="finalSection">
   <h2>🧾 총 결제 금액</h2>
-  <div id="finalAmount" style="font-size: 24px; margin-bottom: 20px;">0원</div>
-
-  <button id="submitButton" disabled>결제하기</button>
+  <div id="finalAmount">0원</div>
+  <button id="submitButton" type="submit" disabled>결제하기</button>
 </div>
-
 <script>
+// 🔥 돼지고기, 소고기, 양념육 가격표
 const porkList = {
   "삼겹살": 2967, "오겹살": 3134, "목살": 2634, "앞다리살": 1650, "찌개용": 1650,
   "등갈비": 2967, "갈빗대벌집삼겹살": 3300, "생 대패삼겹살": 2967, "돈 등심": 1650,
   "돈 안심": 1650, "항정살": 6500, "가브리살(등심덧살)": 5500, "갈매기살": 5000,
   "꼬들살": 3800, "앞 사태(껍질O)": 1967, "돼지갈비": 1650
 };
-
 const beefList = {
   "한우 꽃등심": 18800, "한우 채끝등심": 18000, "한우 안심": 18800, "한우 치마살": 21800,
   "한우 살치살": 21800, "한우 꽃갈비살": 21800, "한우 부채살": 18000, "한우 업진살": 18000,
@@ -196,162 +204,240 @@ const beefList = {
   "한우 양지 국거리": 7500, "한우 목심 양지": 6000, "한우 사태": 5000,
   "한우 우둔살": 7000, "한우 다짐육": 7000, "한우 육회": 7500
 };
-
-const porkSelect = document.getElementById('porkSelect');
-for (let meat in porkList) {
-  const option = document.createElement('option');
-  option.value = meat;
-  option.textContent = `${meat} (100g ${porkList[meat]}원)`;
-  porkSelect.appendChild(option);
-}
-
-const beefSelect = document.getElementById('beefSelect');
-for (let meat in beefList) {
-  const option = document.createElement('option');
-  option.value = meat;
-  option.textContent = `${meat} (100g ${beefList[meat]}원)`;
-  beefSelect.appendChild(option);
-}
+const marinatedList = {
+  "한우 사골곰탕": 6000,
+  "한우 고기듬뿍 사골곰탕": 10000,
+  "고추장 순살 닭갈비": 9900,
+  "한돈 고추장 불고기": 8900,
+  "한돈 생 양념목살": 14800,
+  "한우 1++ 찹스테이크": 16800,
+  "너를 꽁 찜닭": 10800
+};
 
 let selectedItems = [];
 
+// 🔥 드롭다운 채우기
+for (let meat in porkList) {
+  const opt = document.createElement('option');
+  opt.value = meat;
+  opt.textContent = `${meat} (100g ${porkList[meat]}원)`;
+  document.getElementById('porkSelect').appendChild(opt);
+}
+for (let meat in beefList) {
+  const opt = document.createElement('option');
+  opt.value = meat;
+  opt.textContent = `${meat} (100g ${beefList[meat]}원)`;
+  document.getElementById('beefSelect').appendChild(opt);
+}
+
+// 🔥 고기/양념 추가
 function addItem(type) {
   let select, weightInput, priceList;
+
   if (type === 'pork') {
     select = document.getElementById('porkSelect');
     weightInput = document.getElementById('porkWeight');
     priceList = porkList;
-  } else {
+  } else if (type === 'beef') {
     select = document.getElementById('beefSelect');
     weightInput = document.getElementById('beefWeight');
     priceList = beefList;
+  } else {
+    select = document.getElementById('marinatedSelect');
+    weightInput = document.getElementById('marinatedWeight');
+    priceList = marinatedList;
   }
 
   const meat = select.value;
   let weight = parseInt(weightInput.value);
 
-  if (!meat || isNaN(weight) || weight <= 0 || weight % 10 !== 0) {
-    alert('고기 부위와 중량을 정확히 입력해주세요. (10g 단위)');
+  if (!meat || isNaN(weight) || weight <= 0) {
+    alert('부위와 중량(또는 수량)을 정확히 입력해주세요.');
+    return;
+  }
+  if ((type !== 'marinated') && (weight % 10 !== 0)) {
+    alert('고기는 10g 단위로 입력해야 합니다.');
     return;
   }
 
-  selectedItems.push({ meat, weight, pricePer100g: priceList[meat] });
-  updateList();
+  const pricePerUnit = priceList[meat];
+  const existing = selectedItems.find(item => item.meat === meat);
+
+  if (existing) {
+    existing.weight += weight;
+  } else {
+    selectedItems.push({ meat, weight, pricePerUnit, type });
+  }
+
   select.value = "";
   weightInput.value = "";
+  updateList();
 }
 
+// 🔥 상품 목록 업데이트
 function updateList() {
   const itemsList = document.getElementById('itemsList');
   itemsList.innerHTML = '';
 
   let totalWeight = 0;
+  let totalCount = 0;
   let totalPrice = 0;
 
-  selectedItems.forEach(item => {
-    const itemPrice = Math.floor(item.weight * item.pricePer100g / 100);
+  selectedItems.forEach((item, index) => {
+    let itemPrice = 0;
+    if (item.type === 'marinated') {
+      itemPrice = item.weight * item.pricePerUnit;
+      totalCount += item.weight;
+    } else {
+      itemPrice = Math.floor(item.weight * item.pricePerUnit / 100);
+      totalWeight += item.weight;
+    }
+
     const div = document.createElement('div');
     div.className = 'item';
-    div.innerHTML = `${item.meat} - ${item.weight}g - ${itemPrice.toLocaleString()}원`;
+    div.innerHTML = `
+      ${item.meat} - ${item.weight}${item.type === 'marinated' ? '개' : 'g'} - ${itemPrice.toLocaleString()}원
+      <div class="item-buttons">
+        <button class="action-btn" onclick="editItem(${index})">✏️</button>
+        <button class="action-btn" onclick="removeItem(${index})">🗑️</button>
+      </div>
+    `;
     itemsList.appendChild(div);
 
-    totalWeight += item.weight;
     totalPrice += itemPrice;
   });
 
   const roundedPrice = Math.floor(totalPrice / 100) * 100;
-  document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight}g`;
+
+  document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight}g / 총 수량: ${totalCount}개`;
   document.getElementById('totalPrice').textContent = `총 금액: ${roundedPrice.toLocaleString()}원`;
+  document.getElementById('finalAmount').textContent = `${roundedPrice.toLocaleString()}원`;
 
-  updateFinalAmount();
+  checkSubmitEnabled();
 }
 
-function updateFinalAmount() {
-  const totalPriceText = document.getElementById('totalPrice').innerText;
-  document.getElementById('finalAmount').innerText = totalPriceText.replace('총 금액: ', '');
+// 🔥 수정/삭제
+function editItem(index) {
+  const item = selectedItems[index];
+  const message = item.type === 'marinated' ? "새 수량 (개 단위)" : "새 중량 (10g 단위)";
+  const newWeight = prompt(message, item.weight);
+
+  if (newWeight !== null) {
+    const parsed = parseInt(newWeight);
+    if (!isNaN(parsed)) {
+      if (item.type === 'marinated' || parsed % 10 === 0) {
+        selectedItems[index].weight = parsed;
+        updateList();
+      } else {
+        alert("고기는 10g 단위로 입력해야 합니다.");
+      }
+    } else {
+      alert("숫자를 입력해주세요.");
+    }
+  }
+}
+function removeItem(index) {
+  selectedItems.splice(index, 1);
+  updateList();
 }
 
+// 🔥 결제 방법 변경
 function togglePaymentFields() {
   const method = document.getElementById('paymentMethod').value;
-  const accountFields = document.getElementById('accountFields');
-
-  if (method === 'account') {
-    accountFields.style.display = 'block';
-
-    // depositorName input에 실시간 입력 감시 추가
-    const depositorInput = document.getElementById('depositorName');
-    if (depositorInput) {
-      depositorInput.addEventListener('input', validateForm);
-    }
-  } else {
-    accountFields.style.display = 'none';
-  }
-
-  setTimeout(validateForm, 100);  // 바로 validateForm 호출해서 다시 검사
+  document.getElementById('accountFields').style.display = method === 'account' ? 'block' : 'none';
 }
 
-function validateForm() {
-  const contact = document.getElementById('contact').value.trim();
-  const name = document.getElementById('name').value.trim();
-  const address = document.getElementById('address').value.trim();
-  const doorcode = document.getElementById('doorcode').value.trim();
-  const paymentMethod = document.getElementById('paymentMethod').value;
-  const depositorName = document.getElementById('depositorName') ? document.getElementById('depositorName').value.trim() : '';
-
-  let isValid = contact && name && address && doorcode && paymentMethod;
-  if (paymentMethod === 'account') {
-    isValid = isValid && depositorName;
-  }
-
-  const submitButton = document.getElementById('submitButton');
-  submitButton.disabled = !isValid;
-}
+// 🔥 배송지 저장/불러오기
 function saveAddress() {
-  const shippingInfo = {
+  const info = {
     contact: document.getElementById('contact').value,
     name: document.getElementById('name').value,
     address: document.getElementById('address').value,
     doorcode: document.getElementById('doorcode').value,
     deliveryRequest: document.getElementById('deliveryRequest').value
   };
-  localStorage.setItem('shippingInfo', JSON.stringify(shippingInfo));
+  localStorage.setItem('shippingInfo', JSON.stringify(info));
   alert('배송지가 저장되었습니다!');
 }
-
 function loadAddress() {
   const saved = localStorage.getItem('shippingInfo');
   if (saved) {
-    const shippingInfo = JSON.parse(saved);
-    document.getElementById('contact').value = shippingInfo.contact || '';
-    document.getElementById('name').value = shippingInfo.name || '';
-    document.getElementById('address').value = shippingInfo.address || '';
-    document.getElementById('doorcode').value = shippingInfo.doorcode || '';
-    document.getElementById('deliveryRequest').value = shippingInfo.deliveryRequest || '';
-    alert('저장된 배송지를 불러왔습니다!');
-    validateForm(); // 불러온 뒤 필수 입력 체크
+    const info = JSON.parse(saved);
+    document.getElementById('contact').value = info.contact || '';
+    document.getElementById('name').value = info.name || '';
+    document.getElementById('address').value = info.address || '';
+    document.getElementById('doorcode').value = info.doorcode || '';
+    document.getElementById('deliveryRequest').value = info.deliveryRequest || '';
+    alert('배송지를 불러왔습니다!');
   } else {
     alert('저장된 배송지가 없습니다.');
   }
 }
 
-document.getElementById('contact').addEventListener('input', validateForm);
-document.getElementById('name').addEventListener('input', validateForm);
-document.getElementById('address').addEventListener('input', validateForm);
-document.getElementById('doorcode').addEventListener('input', validateForm);
-document.getElementById('paymentMethod').addEventListener('change', togglePaymentFields);
-
-document.getElementById('submitButton').addEventListener('click', function() {
-  if (!this.disabled) {
-    alert('결제가 완료되었습니다! 감사합니다 🐮🐷');
-  }
-});
-
+// 🔥 연락처 자동 하이픈
 document.getElementById('contact').addEventListener('input', function(e) {
-  let number = e.target.value.replace(/[^0-9]/g, '');
-  let formatted = number.length < 4 ? number : number.length < 8 ? number.slice(0, 3) + '-' + number.slice(3) : number.slice(0, 3) + '-' + number.slice(3, 7) + '-' + number.slice(7);
-  e.target.value = formatted;
+  let num = e.target.value.replace(/\D/g, '');
+  if (num.length < 4) e.target.value = num;
+  else if (num.length < 8) e.target.value = `${num.slice(0, 3)}-${num.slice(3)}`;
+  else e.target.value = `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7, 11)}`;
 });
-</script>
 
+// 🔥 주문 서버 전송
+document.getElementById('submitButton').addEventListener('click', submitOrder);
+
+function submitOrder() {
+  const orderData = {
+    items: selectedItems,
+    totalAmount: document.getElementById('finalAmount').innerText,
+    contact: document.getElementById('contact').value,
+    name: document.getElementById('name').value,
+    address: document.getElementById('address').value,
+    doorcode: document.getElementById('doorcode').value,
+    requestMessage: document.getElementById('request').value,
+    deliveryRequest: document.getElementById('deliveryRequest').value,
+    paymentMethod: document.getElementById('paymentMethod').value,
+    depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
+    cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
+  };
+
+  fetch('/submit-order', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert('주문이 완료되었습니다! 🎉');
+    console.log(data);
+  })
+  .catch(error => {
+    alert('주문 실패 😥');
+    console.error(error);
+  });
+}
+
+// 🔥 버튼 활성화 체크
+function checkSubmitEnabled() {
+  const hasItems = selectedItems.length > 0;
+  const hasContact = document.getElementById('contact').value.trim() !== '';
+  const hasName = document.getElementById('name').value.trim() !== '';
+  const hasAddress = document.getElementById('address').value.trim() !== '';
+  const hasPayment = document.getElementById('paymentMethod').value.trim() !== '';
+const privacyChecked = document.getElementById('privacyConsent').checked;
+  const refundChecked = document.getElementById('refundConsent').checked;
+
+  const submitButton = document.getElementById('submitButton');
+  submitButton.disabled = !(hasItems && hasContact && hasName && hasAddress && hasPayment);
+}
+
+// 🔥 입력 변화 감지
+document.getElementById('contact').addEventListener('input', checkSubmitEnabled);
+document.getElementById('name').addEventListener('input', checkSubmitEnabled);
+document.getElementById('address').addEventListener('input', checkSubmitEnabled);
+document.getElementById('paymentMethod').addEventListener('change', checkSubmitEnabled);
+
+</script>
 </body>
 </html>
