@@ -89,6 +89,7 @@
 </div>
 
 <script>
+// ✅ 주문 불러오기
 async function loadOrders() {
   try {
     const response = await fetch('/get-orders');
@@ -117,7 +118,7 @@ async function loadOrders() {
         <td>
           ${order.paymentMethod === 'account' ? (order.cashReceipt || '-') : '-'}
         </td>
-        <td>${order.totalAmount || '-'}</td> 
+        <td>${order.totalAmount || '-'}</td>
         <td class="${order.is_paid ? 'paid' : 'unpaid'}">
           ${order.is_paid ? '완료' : '미완료'}
         </td>
@@ -128,25 +129,26 @@ async function loadOrders() {
       `;
       tableBody.appendChild(row);
 
-     if (order.requestMessage && order.requestMessage.trim() !== '') {
-  const requestRow = document.createElement('tr');
-  requestRow.innerHTML = `<td colspan="12" class="extra-row">📝 요청사항: ${order.requestMessage}</td>`;
-  tableBody.appendChild(requestRow);
-}
+      // ✅ 요청사항 있으면 추가
+      if (order.requestMessage && order.requestMessage.trim() !== '') {
+        const requestRow = document.createElement('tr');
+        requestRow.innerHTML = `<td colspan="12" class="extra-row">📝 요청사항: ${order.requestMessage}</td>`;
+        tableBody.appendChild(requestRow);
+      }
 
-if (order.deliveryRequest && order.deliveryRequest.trim() !== '') {
-  const deliveryRow = document.createElement('tr');
-  deliveryRow.innerHTML = `<td colspan="12" class="extra-row">🚚 배송 요청사항: ${order.deliveryRequest}</td>`;
-  tableBody.appendChild(deliveryRow);
-}
-
+      // ✅ 배송 요청사항 있으면 추가
+      if (order.deliveryRequest && order.deliveryRequest.trim() !== '') {
+        const deliveryRow = document.createElement('tr');
+        deliveryRow.innerHTML = `<td colspan="12" class="extra-row">🚚 배송 요청사항: ${order.deliveryRequest}</td>`;
+        tableBody.appendChild(deliveryRow);
+      }
     });
-
   } catch (error) {
     console.error('주문 불러오기 실패:', error);
   }
 }
 
+// ✅ 결제 완료 처리
 async function markAsPaid(index) {
   try {
     const response = await fetch(`/mark-paid/${index}`, { method: 'POST' });
@@ -161,6 +163,7 @@ async function markAsPaid(index) {
   }
 }
 
+// ✅ 주문 삭제 처리
 async function deleteOrder(index) {
   if (!confirm('정말 삭제할까요?')) return;
 
@@ -177,7 +180,7 @@ async function deleteOrder(index) {
   }
 }
 
-// ✨ 페이지 열릴 때 바로 주문 불러오기
+// ✅ 페이지 열릴 때 자동으로 주문 목록 불러오기
 window.onload = loadOrders;
 </script>
 

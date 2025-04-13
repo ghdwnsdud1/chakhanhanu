@@ -38,12 +38,8 @@ async def admin_page(request: Request):
 @app.post("/submit-order")
 async def submit_order(request: Request):
     data = await request.json()
-    print(data)
-
     data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     data["is_paid"] = False
-
-
 
     # 🔥 파일에서 다시 불러오고 추가하기
     if os.path.exists(ORDER_FILE):
@@ -102,4 +98,4 @@ async def delete_order(order_index: int):
     return {"error": "삭제 실패"}
 
 # 정적 파일 제공 (이미지, css)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")  

@@ -100,6 +100,7 @@
 <input type="number" id="beefWeight" placeholder="중량 (10g 단위)" step="10" min="10">
 <button type="button" onclick="addItem('beef')">추가하기</button>
 
+<!-- 양념육 -->
 <h2>🍖 양념육 선택</h2>
 <select id="marinatedSelect">
   <option value="">-- 양념육을 선택하세요 --</option>
@@ -116,6 +117,7 @@
 
 <hr>
 
+<!-- 선택한 상품 -->
 <div id="selectedItems">
   <h2>🛒 선택한 상품</h2>
   <div id="itemsList"></div>
@@ -125,6 +127,7 @@
 
 <hr>
 
+<!-- 요청사항 -->
 <div id="requestSection">
   <h2>📝 요청사항</h2>
   <textarea id="request" placeholder="추가 요청사항을 입력하세요" rows="4"></textarea>
@@ -132,11 +135,13 @@
 
 <hr>
 
+<!-- 배송지 저장/불러오기 -->
 <div class="button-group">
   <button type="button" onclick="saveAddress()">📥 배송지 저장</button>
   <button type="button" onclick="loadAddress()">📤 배송지 불러오기</button>
 </div>
 
+<!-- 배송지 입력 -->
 <div id="addressSection">
   <h2>📦 배송지 입력</h2>
   <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)"> <span class="important">*</span>
@@ -148,6 +153,7 @@
 
 <hr>
 
+<!-- 결제 방법 -->
 <div id="paymentSection">
   <h2>💳 결제 방법</h2>
   <select id="paymentMethod" onchange="togglePaymentFields()">
@@ -164,14 +170,14 @@
 
 <hr>
 
+<!-- 총 결제 금액 -->
 <div id="finalSection">
   <h2>🧾 총 결제 금액</h2>
   <div id="finalAmount">0원</div>
   <button id="submitButton" type="submit" disabled>결제하기</button>
 </div>
-
 <script>
-// 1. 고기, 양념육 가격표 먼저 정의
+// 🔥 돼지고기, 소고기, 양념육 가격표
 const porkList = {
   "삼겹살": 2967, "오겹살": 3134, "목살": 2634, "앞다리살": 1650, "찌개용": 1650,
   "등갈비": 2967, "갈빗대벌집삼겹살": 3300, "생 대패삼겹살": 2967, "돈 등심": 1650,
@@ -197,25 +203,24 @@ const marinatedList = {
 
 let selectedItems = [];
 
-// --- 드롭다운 채우기 ---
+// 🔥 드롭다운 채우기
 for (let meat in porkList) {
-  let opt = document.createElement('option');
+  const opt = document.createElement('option');
   opt.value = meat;
   opt.textContent = `${meat} (100g ${porkList[meat]}원)`;
   document.getElementById('porkSelect').appendChild(opt);
 }
 for (let meat in beefList) {
-  let opt = document.createElement('option');
+  const opt = document.createElement('option');
   opt.value = meat;
   opt.textContent = `${meat} (100g ${beefList[meat]}원)`;
   document.getElementById('beefSelect').appendChild(opt);
 }
 
-
-// --- 이제 진짜 addItem 함수 정의 ---
+// 🔥 고기/양념 추가
 function addItem(type) {
   let select, weightInput, priceList;
-  
+
   if (type === 'pork') {
     select = document.getElementById('porkSelect');
     weightInput = document.getElementById('porkWeight');
@@ -224,27 +229,22 @@ function addItem(type) {
     select = document.getElementById('beefSelect');
     weightInput = document.getElementById('beefWeight');
     priceList = beefList;
-  } else if (type === 'marinated') {
+  } else {
     select = document.getElementById('marinatedSelect');
     weightInput = document.getElementById('marinatedWeight');
     priceList = marinatedList;
   }
 
   const meat = select.value;
-  let weight = 0;
+  let weight = parseInt(weightInput.value);
 
-  if (type === 'marinated') {
-    weight = parseInt(weightInput.value);
-    if (isNaN(weight) || weight <= 0) {
-      alert('수량을 정확히 입력해주세요!');
-      return;
-    }
-  } else {
-    weight = parseInt(weightInput.value);
-    if (isNaN(weight) || weight <= 0 || weight % 10 !== 0) {
-      alert('중량을 10g 단위로 입력해주세요!');
-      return;
-    }
+  if (!meat || isNaN(weight) || weight <= 0) {
+    alert('부위와 중량(또는 수량)을 정확히 입력해주세요.');
+    return;
+  }
+  if ((type !== 'marinated') && (weight % 10 !== 0)) {
+    alert('고기는 10g 단위로 입력해야 합니다.');
+    return;
   }
 
   const pricePerUnit = priceList[meat];
@@ -256,30 +256,28 @@ function addItem(type) {
     selectedItems.push({ meat, weight, pricePerUnit, type });
   }
 
-  if (weightInput) weightInput.value = "";
-  if (select) select.value = "";
-
+  select.value = "";
+  weightInput.value = "";
   updateList();
-
 }
 
-
+// 🔥 상품 목록 업데이트
 function updateList() {
   const itemsList = document.getElementById('itemsList');
   itemsList.innerHTML = '';
 
   let totalWeight = 0;
-  let totalCount = 0;  // ✨ 추가
+  let totalCount = 0;
   let totalPrice = 0;
 
   selectedItems.forEach((item, index) => {
     let itemPrice = 0;
     if (item.type === 'marinated') {
       itemPrice = item.weight * item.pricePerUnit;
-      totalCount += item.weight;   // ✨ 양념육은 수량 누적
+      totalCount += item.weight;
     } else {
       itemPrice = Math.floor(item.weight * item.pricePerUnit / 100);
-      totalWeight += item.weight;  // ✨ 고기는 중량 누적
+      totalWeight += item.weight;
     }
 
     const div = document.createElement('div');
@@ -297,20 +295,20 @@ function updateList() {
   });
 
   const roundedPrice = Math.floor(totalPrice / 100) * 100;
-  
-  // ✨ 중량과 수량을 따로 표시
+
   document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight}g / 총 수량: ${totalCount}개`;
   document.getElementById('totalPrice').textContent = `총 금액: ${roundedPrice.toLocaleString()}원`;
   document.getElementById('finalAmount').textContent = `${roundedPrice.toLocaleString()}원`;
 
-  checkSubmitEnabled();  // ✨ 여기 추가!
+  checkSubmitEnabled();
 }
 
+// 🔥 수정/삭제
 function editItem(index) {
   const item = selectedItems[index];
   const message = item.type === 'marinated' ? "새 수량 (개 단위)" : "새 중량 (10g 단위)";
   const newWeight = prompt(message, item.weight);
-  
+
   if (newWeight !== null) {
     const parsed = parseInt(newWeight);
     if (!isNaN(parsed)) {
@@ -325,17 +323,18 @@ function editItem(index) {
     }
   }
 }
-
 function removeItem(index) {
   selectedItems.splice(index, 1);
   updateList();
 }
 
+// 🔥 결제 방법 변경
 function togglePaymentFields() {
   const method = document.getElementById('paymentMethod').value;
   document.getElementById('accountFields').style.display = method === 'account' ? 'block' : 'none';
 }
 
+// 🔥 배송지 저장/불러오기
 function saveAddress() {
   const info = {
     contact: document.getElementById('contact').value,
@@ -347,7 +346,6 @@ function saveAddress() {
   localStorage.setItem('shippingInfo', JSON.stringify(info));
   alert('배송지가 저장되었습니다!');
 }
-
 function loadAddress() {
   const saved = localStorage.getItem('shippingInfo');
   if (saved) {
@@ -363,6 +361,7 @@ function loadAddress() {
   }
 }
 
+// 🔥 연락처 자동 하이픈
 document.getElementById('contact').addEventListener('input', function(e) {
   let num = e.target.value.replace(/\D/g, '');
   if (num.length < 4) e.target.value = num;
@@ -370,6 +369,7 @@ document.getElementById('contact').addEventListener('input', function(e) {
   else e.target.value = `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7, 11)}`;
 });
 
+// 🔥 주문 서버 전송
 document.getElementById('submitButton').addEventListener('click', submitOrder);
 
 function submitOrder() {
@@ -384,7 +384,7 @@ function submitOrder() {
     deliveryRequest: document.getElementById('deliveryRequest').value,
     paymentMethod: document.getElementById('paymentMethod').value,
     depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
-    cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''   // ✨ 추가!!
+    cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
   };
 
   fetch('/submit-order', {
@@ -396,7 +396,7 @@ function submitOrder() {
   })
   .then(response => response.json())
   .then(data => {
-    alert('주문이 완료되었습니다!');
+    alert('주문이 완료되었습니다! 🎉');
     console.log(data);
   })
   .catch(error => {
@@ -404,6 +404,8 @@ function submitOrder() {
     console.error(error);
   });
 }
+
+// 🔥 버튼 활성화 체크
 function checkSubmitEnabled() {
   const hasItems = selectedItems.length > 0;
   const hasContact = document.getElementById('contact').value.trim() !== '';
@@ -415,13 +417,12 @@ function checkSubmitEnabled() {
   submitButton.disabled = !(hasItems && hasContact && hasName && hasAddress && hasPayment);
 }
 
+// 🔥 입력 변화 감지
 document.getElementById('contact').addEventListener('input', checkSubmitEnabled);
 document.getElementById('name').addEventListener('input', checkSubmitEnabled);
 document.getElementById('address').addEventListener('input', checkSubmitEnabled);
 document.getElementById('paymentMethod').addEventListener('change', checkSubmitEnabled);
 
-
 </script>
-
 </body>
 </html>
