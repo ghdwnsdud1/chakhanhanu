@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>착한한우 주문 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .paid {
+      color: green;
+      font-weight: bold;
+    }
+    .unpaid {
+      color: red;
+      font-weight: bold;
+    }
+    button {
+      padding: 6px 10px;
+      font-size: 14px;
+      margin: 2px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.delete {
+      background-color: #f44336;
+    }
+    button:hover {
+      opacity: 0.8;
+    }
+    .extra-row {
+      background-color: #fcfcfc;
+      text-align: left;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🐮 착한한우 주문 관리 페이지 🐷</h1>
+
+<div style="display: flex; justify-content: center;">
+  <table>
+    <thead>
+      <tr>
+        <th>주문시간</th>
+        <th>이름</th>
+        <th>연락처</th>
+        <th>주소</th>
+        <th>공동현관</th>
+        <th>주문상품</th>
+        <th>결제방법</th>
+        <th>입금자명</th>        
+        <th>현금영수증번호</th>
+        <th>총 결제금액</th>
+        <th>결제여부</th>
+        <th>관리</th>
+      </tr>
+    </thead>
+    <tbody id="orderTableBody">
+    </tbody>
+  </table>
+</div>
+
+<script>
+async function loadOrders() {
+  try {
+    const response = await fetch('/get-orders');
+    const orders = await response.json();
+
+    const tableBody = document.getElementById('orderTableBody');
+    tableBody.innerHTML = '';
+
+    orders.forEach((order, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${order.timestamp || '-'}</td>
+        <td>${order.name || '-'}</td>
+        <td>${order.contact || '-'}</td>
+        <td>${order.address || '-'}</td>
+        <td>${order.doorcode || '-'}</td>
+        <td>
+          ${order.items ? order.items.map(item => `${item.meat} ${item.weight}${item.type === 'marinated' ? '개' : 'g'}`).join('<br>') : '-'}
+        </td>
+        <td>
+          ${order.paymentMethod === 'account' ? '계좌이체' : order.paymentMethod === 'card' ? '카드결제' : '-'}
+        </td>
+        <td>
+          ${order.paymentMethod === 'account' ? (order.depositorName || '-') : '-'}
+        </td>
+        <td>
+          ${order.paymentMethod === 'account' ? (order.cashReceipt || '-') : '-'}
+        </td>
+        <td>${order.totalAmount || '-'}</td> 
+        <td class="${order.is_paid ? 'paid' : 'unpaid'}">
+          ${order.is_paid ? '완료' : '미완료'}
+        </td>
+        <td>
+          ${!order.is_paid ? `<button onclick="markAsPaid(${index})">결제완료</button>` : ''}
+          <button class="delete" onclick="deleteOrder(${index})">삭제</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+
+     if (order.requestMessage && order.requestMessage.trim() !== '') {
+  const requestRow = document.createElement('tr');
+  requestRow.innerHTML = `<td colspan="12" class="extra-row">📝 요청사항: ${order.requestMessage}</td>`;
+  tableBody.appendChild(requestRow);
+}
+
+if (order.deliveryRequest && order.deliveryRequest.trim() !== '') {
+  const deliveryRow = document.createElement('tr');
+  deliveryRow.innerHTML = `<td colspan="12" class="extra-row">🚚 배송 요청사항: ${order.deliveryRequest}</td>`;
+  tableBody.appendChild(deliveryRow);
+}
+
+    });
+
+  } catch (error) {
+    console.error('주문 불러오기 실패:', error);
+  }
+}
+
+async function markAsPaid(index) {
+  try {
+    const response = await fetch(`/mark-paid/${index}`, { method: 'POST' });
+    if (response.ok) {
+      alert('결제 완료 처리되었습니다!');
+      loadOrders();
+    } else {
+      alert('처리 실패');
+    }
+  } catch (error) {
+    console.error('결제 완료 실패', error);
+  }
+}
+
+async function deleteOrder(index) {
+  if (!confirm('정말 삭제할까요?')) return;
+
+  try {
+    const response = await fetch(`/delete-order/${index}`, { method: 'POST' });
+    if (response.ok) {
+      alert('삭제 완료');
+      loadOrders();
+    } else {
+      alert('삭제 실패');
+    }
+  } catch (error) {
+    console.error('삭제 실패', error);
+  }
+}
+
+// ✨ 페이지 열릴 때 바로 주문 불러오기
+window.onload = loadOrders;
+</script>
+
+</body>
+</html>
