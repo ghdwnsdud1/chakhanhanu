@@ -77,6 +77,7 @@
       font-weight: bold;
     }
   </style>
+<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 </head>
 
 <body>
@@ -165,8 +166,10 @@
   <div id="accountFields" style="display:none;">
     <input type="text" id="depositorName" placeholder="입금자명"> <span class="important">*</span>
     <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
-  
-<div id="consentSection" style="margin-top: 20px;">
+    </div>
+</div>
+
+<div id="consentSection" style="margin-top: 20px; display: block;">
   <label style="font-size: 14px;">
     <input type="checkbox" id="privacyConsent">
     <b>[필수]</b> 개인정보 수집 및 이용에 동의합니다. (이름, 연락처, 주소, 공동현관 비밀번호 수집 / 배송 완료 후 30일 이내 파기)
@@ -174,11 +177,11 @@
   <br>
   <label style="font-size: 14px; margin-top: 10px; display: block;">
     <input type="checkbox" id="refundConsent">
-    <b>[필수]</b> 환불 및 교환 정책에 동의합니다. (- 주문 완료 후 포장 준비가 시작되면 환불이 불가합니다.<br>
+    <b>[필수]</b> 환불 및 교환 정책에 동의합니다. <br>
+    - 주문 완료 후 포장 준비가 시작되면 환불이 불가합니다.<br>
     - 상품 하자(불량) 시 수령 후 24시간 이내 문의 주시면 교환 또는 환불해드립니다.<br>
     - 문의 및 환불 요청: 카카오톡 또는 매장으로 전화 부탁드립니다 (031-500-8876))
   </label>
-</div>
 </div>
 
 <hr>
@@ -189,6 +192,16 @@
   <div id="finalAmount">0원</div>
   <button id="submitButton" type="submit" disabled>결제하기</button>
 </div>
+<footer style="margin-top: 50px; font-size: 12px; color: #666; text-align: center; line-height: 1.6;">
+  <div>상호명: 착한한우 | 대표자명: 김태종 | 사업자등록번호: 154-71-00398</div>
+  <div>사업장주소: (14922) 경기 시흥시 은계남로 11, 상가2동 106호(후문상가) 착한한우</div>
+  <div>전화번호: 031-500-8876</div>
+  <div>통신판매업번호: (발급 후 입력 예정)</div>
+  <div style="margin-top: 10px;">
+    <a href="/terms.html" style="color: #666; text-decoration: underline;">이용약관</a> | 
+    <a href="/privacy.html" style="color: #666; text-decoration: underline;">개인정보처리방침</a>
+  </div>
+</footer>
 <script>
 // 🔥 돼지고기, 소고기, 양념육 가격표
 const porkList = {
@@ -344,7 +357,21 @@ function removeItem(index) {
 // 🔥 결제 방법 변경
 function togglePaymentFields() {
   const method = document.getElementById('paymentMethod').value;
-  document.getElementById('accountFields').style.display = method === 'account' ? 'block' : 'none';
+  const accountFields = document.getElementById('accountFields');
+  const consentSection = document.getElementById('consentSection');
+
+  if (method === 'account') {
+    accountFields.style.display = 'block';    // 입금자명/현금영수증칸 보여주기
+    consentSection.style.display = 'block';   // 개인정보/환불정책 보여주기
+  } else if (method === 'card') {
+    accountFields.style.display = 'none';     // 카드면 입금자명/현금영수증 숨김
+    consentSection.style.display = 'block';   // 개인정보/환불정책 보여주기
+  } else {
+    accountFields.style.display = 'none';     // 아무것도 선택 안했으면
+    consentSection.style.display = 'none';    // 개인정보/환불정책 숨기기
+  }
+
+  checkSubmitEnabled();  // 🔥 버튼 활성화 다시 검사
 }
 
 // 🔥 배송지 저장/불러오기
@@ -400,22 +427,63 @@ function submitOrder() {
     cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
   };
 
-  fetch('/submit-order', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(orderData)
-  })
-  .then(response => response.json())
-  .then(data => {
-    alert('주문이 완료되었습니다! 🎉');
-    console.log(data);
-  })
-  .catch(error => {
-    alert('주문 실패 😥');
-    console.error(error);
-  });
+  if (orderData.paymentMethod === 'card') {
+    // 카드 결제일 때
+    const IMP = window.IMP;
+    IMP.init('imp20083434'); // 너 가맹점 식별코드!
+
+    IMP.request_pay({
+      pg: 'html5_inicis',  // 이니시스
+      pay_method: 'card',
+      merchant_uid: 'order_' + new Date().getTime(),  // 고유 주문번호
+      name: '착한한우 고기 주문',
+      amount: Number(orderData.totalAmount.replace(/[^0-9]/g, '')),  // 숫자만 남기기
+      buyer_name: orderData.name,
+      buyer_tel: orderData.contact,
+      buyer_addr: orderData.address,
+    }, function (rsp) {
+      if (rsp.success) {
+        alert('✅ 결제 성공!');
+
+        // 🎯 결제 성공했으니까 서버에 주문 저장
+        fetch('/submit-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('🛒 주문이 완료되었습니다!');
+          console.log('서버 응답:', data);
+          // 👉 필요하면 주문 완료 후 페이지 이동도 가능 (ex: window.location.href = '/thankyou')
+        })
+        .catch(error => {
+          console.error('❌ 서버 저장 실패:', error);
+          alert('서버 저장에 실패했습니다.');
+        });
+
+      } else {
+        alert('❌ 결제 실패: ' + rsp.error_msg);
+      }
+    });
+
+  } else if (orderData.paymentMethod === 'account') {
+    // 계좌이체 선택한 경우
+    fetch('/submit-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert('🛒 주문이 완료되었습니다!');
+      console.log('서버 응답:', data);
+    })
+    .catch(error => {
+      console.error('❌ 서버 저장 실패:', error);
+      alert('서버 저장에 실패했습니다.');
+    });
+  }
 }
 
 // 🔥 버튼 활성화 체크
@@ -424,12 +492,27 @@ function checkSubmitEnabled() {
   const hasContact = document.getElementById('contact').value.trim() !== '';
   const hasName = document.getElementById('name').value.trim() !== '';
   const hasAddress = document.getElementById('address').value.trim() !== '';
-  const hasPayment = document.getElementById('paymentMethod').value.trim() !== '';
-const privacyChecked = document.getElementById('privacyConsent').checked;
-  const refundChecked = document.getElementById('refundConsent').checked;
+  const paymentMethod = document.getElementById('paymentMethod').value.trim();  // <-- 오타 고침
+  const privacyConsent = document.getElementById('privacyConsent');
+  const refundConsent = document.getElementById('refundConsent');
+  
+  let privacyChecked = true;
+  let refundChecked = true;
+  let depositorChecked = true;
+  
+  // 결제 방법 골랐을 때만 개인정보/환불 동의 검사
+  if (document.getElementById('consentSection').style.display === 'block') {
+    privacyChecked = privacyConsent && privacyConsent.checked;
+    refundChecked = refundConsent && refundConsent.checked;
+  }
+
+  if (paymentMethod === 'account') {
+    const depositorName = document.getElementById('depositorName').value.trim();
+    depositorChecked = depositorName !== '';
+  }
 
   const submitButton = document.getElementById('submitButton');
-  submitButton.disabled = !(hasItems && hasContact && hasName && hasAddress && hasPayment);
+  submitButton.disabled = !(hasItems && hasContact && hasName && hasAddress && paymentMethod && privacyChecked && refundChecked && depositorChecked);
 }
 
 // 🔥 입력 변화 감지
@@ -437,7 +520,9 @@ document.getElementById('contact').addEventListener('input', checkSubmitEnabled)
 document.getElementById('name').addEventListener('input', checkSubmitEnabled);
 document.getElementById('address').addEventListener('input', checkSubmitEnabled);
 document.getElementById('paymentMethod').addEventListener('change', checkSubmitEnabled);
-
+document.getElementById('privacyConsent').addEventListener('change', checkSubmitEnabled);
+document.getElementById('refundConsent').addEventListener('change', checkSubmitEnabled);
+document.getElementById('depositorName').addEventListener('input', checkSubmitEnabled);
 </script>
 </body>
 </html>
