@@ -96,6 +96,13 @@ async def delete_order(order_index: int):
 
             return {"message": "주문 삭제 성공"}
     return {"error": "삭제 실패"}
+@app.get("/terms", response_class=HTMLResponse)
+async def terms(request: Request):
+    return templates.TemplateResponse("terms.html", {"request": request})
 
+#개인정보처리방침및이용약관
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy(request: Request):
+    return templates.TemplateResponse("privacy.html", {"request": request})
 # 정적 파일 제공 (이미지, css)
 app.mount("/static", StaticFiles(directory="static"), name="static")  
