@@ -157,16 +157,20 @@
 <!-- 결제 방법 -->
 <div id="paymentSection">
   <h2>💳 결제 방법</h2>
-  <select id="paymentMethod" onchange="togglePaymentFields()">
-    <option value="">-- 결제 방법 선택 --</option>
-    <option value="account">계좌이체</option>
-    <option value="card">카드결제</option>
-  </select> <span class="important">*</span>
 
-  <div id="accountFields" style="display:none;">
-    <input type="text" id="depositorName" placeholder="입금자명"> <span class="important">*</span>
-    <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
-    </div>
+<div class="button-group" style="margin-bottom: 20px;">
+  <button id="cardPayButton" type="button" onclick="payByCard()">💳 카드 결제</button>
+   <button id="kakaoPayButton" type="button" onclick="payByKakao()" style="font-size: 17px;">
+    🟡 카카오페이 결제
+  </button>
+  <button id="accountPayButton" type="button" onclick="showAccountFields()">🏦 계좌이체</button>
+</div>
+
+<!-- 계좌이체 입력칸 (처음엔 숨김) -->
+<div id="accountFields" style="display: none; margin-top: 10px;">
+  <input type="text" id="depositorName" placeholder="입금자명 (필수)">
+  <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
+  <button id="accountConfirmButton" type="button" onclick="confirmAccountPayment()">✅ 확인</button>
 </div>
 
 <div id="consentSection" style="margin-top: 20px; display: block;">
@@ -184,13 +188,15 @@
   </label>
 </div>
 
+<input type="hidden" id="paymentMethod">
+
 <hr>
 
 <!-- 총 결제 금액 -->
 <div id="finalSection">
   <h2>🧾 총 결제 금액</h2>
   <div id="finalAmount">0원</div>
-  <button id="submitButton" type="submit" disabled>결제하기</button>
+
 </div>
 <footer style="margin-top: 50px; font-size: 12px; color: #666; text-align: center; line-height: 1.6;">
   <div>상호명: 착한한우 | 대표자명: 김태종 | 사업자등록번호: 154-71-00398</div>
@@ -412,7 +418,100 @@ document.getElementById('contact').addEventListener('input', function(e) {
 // 🔥 주문 서버 전송
 document.getElementById('submitButton').addEventListener('click', submitOrder);
 
-function submitOrder() {
+ function payByCard() {
+  document.getElementById('paymentMethod').value = 'card'; // 입금자명/현금영수증 숨기기
+  if (!validateBeforePayment()) return;
+
+  const IMP = window.IMP;
+  IMP.init('imp20083434'); // 네 가맹점 코드 넣기
+
+  IMP.request_pay({
+    pg: 'html5_inicis',
+    pay_method: 'card',
+    merchant_uid: 'order_' + new Date().getTime(),
+    name: '착한한우 고기 주문',
+    amount: Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, '')),
+    buyer_name: document.getElementById('name').value,
+    buyer_tel: document.getElementById('contact').value,
+    buyer_addr: document.getElementById('address').value
+  }, function (rsp) {
+    if (rsp.success) {
+      alert('카드 결제 성공!');
+      saveOrderToServer('card');
+    } else {
+      alert('카드 결제 실패 😥');
+    }
+  });
+}
+
+function payByKakao() {
+  document.getElementById('paymentMethod').value = 'kakao';  // 🔥 (카카오 선택 표시)
+  if (!validateBeforePayment()) return;
+
+  const IMP = window.IMP;
+  IMP.init('imp20083434'); // 네 가맹점 코드
+
+  IMP.request_pay({
+    pg: 'kakaopay',
+    pay_method: 'card',
+    merchant_uid: 'order_' + new Date().getTime(),
+    name: '착한한우 고기 주문',
+    amount: Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, '')),
+    buyer_name: document.getElementById('name').value,
+    buyer_tel: document.getElementById('contact').value,
+    buyer_addr: document.getElementById('address').value
+  }, function (rsp) {
+    if (rsp.success) {
+      alert('카카오페이 결제 성공!');
+      saveOrderToServer('kakao');
+    } else {
+      alert('카카오페이 결제 실패 😥');
+    }
+  });
+}
+function payByAccount() {
+  document.getElementById('paymentMethod').value = 'account';
+  accountFields.style.display = 'block'; // 계좌이체 누르면 입금자명/현금영수증 보여주기
+
+  if (!validateBeforePayment(true)) return; // 계좌이체일 때는 입금자명 검사
+
+  if (confirm('계좌이체를 선택하셨습니다.\n주문을 진행할까요?')) {
+    saveOrderToServer('account');
+    alert('계좌이체 주문이 완료되었습니다!\n지정된 계좌로 송금 부탁드립니다.');
+  }
+}
+function validateBeforePayment(isAccount = false) {
+  if (!selectedItems.length) {
+    alert('상품을 선택해주세요!');
+    return false;
+  }
+  if (!document.getElementById('contact').value.trim()) {
+    alert('연락처를 입력해주세요!');
+    return false;
+  }
+  if (!document.getElementById('name').value.trim()) {
+    alert('이름을 입력해주세요!');
+    return false;
+  }
+  if (!document.getElementById('address').value.trim()) {
+    alert('주소를 입력해주세요!');
+    return false;
+  }
+  if (!document.getElementById('privacyConsent').checked || !document.getElementById('refundConsent').checked) {
+    alert('개인정보 수집 및 환불 정책에 동의해 주세요!');
+    return false;
+  }
+  if (isAccount) {
+    const depositorName = document.getElementById('depositorName').value.trim();
+    if (!depositorName) {
+      alert('입금자명을 입력해주세요!');
+      return false;
+    }
+  }
+  return true;
+}
+
+function saveOrderToServer(paymentMethod) {
   const orderData = {
     items: selectedItems,
     totalAmount: document.getElementById('finalAmount').innerText,
@@ -422,70 +521,39 @@ function submitOrder() {
     doorcode: document.getElementById('doorcode').value,
     requestMessage: document.getElementById('request').value,
     deliveryRequest: document.getElementById('deliveryRequest').value,
-    paymentMethod: document.getElementById('paymentMethod').value,
+    paymentMethod: paymentMethod,
     depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
     cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
   };
 
-  if (orderData.paymentMethod === 'card') {
-    // 카드 결제일 때
-    const IMP = window.IMP;
-    IMP.init('imp20083434'); // 너 가맹점 식별코드!
-
-    IMP.request_pay({
-      pg: 'html5_inicis',  // 이니시스
-      pay_method: 'card',
-      merchant_uid: 'order_' + new Date().getTime(),  // 고유 주문번호
-      name: '착한한우 고기 주문',
-      amount: Number(orderData.totalAmount.replace(/[^0-9]/g, '')),  // 숫자만 남기기
-      buyer_name: orderData.name,
-      buyer_tel: orderData.contact,
-      buyer_addr: orderData.address,
-    }, function (rsp) {
-      if (rsp.success) {
-        alert('✅ 결제 성공!');
-
-        // 🎯 결제 성공했으니까 서버에 주문 저장
-        fetch('/submit-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData)
-        })
-        .then(response => response.json())
-        .then(data => {
-          alert('🛒 주문이 완료되었습니다!');
-          console.log('서버 응답:', data);
-          // 👉 필요하면 주문 완료 후 페이지 이동도 가능 (ex: window.location.href = '/thankyou')
-        })
-        .catch(error => {
-          console.error('❌ 서버 저장 실패:', error);
-          alert('서버 저장에 실패했습니다.');
-        });
-
-      } else {
-        alert('❌ 결제 실패: ' + rsp.error_msg);
-      }
-    });
-
-  } else if (orderData.paymentMethod === 'account') {
-    // 계좌이체 선택한 경우
-    fetch('/submit-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData)
-    })
-    .then(response => response.json())
-    .then(data => {
-      alert('🛒 주문이 완료되었습니다!');
-      console.log('서버 응답:', data);
-    })
-    .catch(error => {
-      console.error('❌ 서버 저장 실패:', error);
-      alert('서버 저장에 실패했습니다.');
-    });
-  }
+  fetch('/submit-order', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('주문 저장 성공:', data);
+  })
+  .catch(error => {
+    console.error('주문 저장 실패:', error);
+  });
 }
 
+function showAccountFields() {
+  document.getElementById('paymentMethod').value = 'account';
+  document.getElementById('accountFields').style.display = 'block';
+}
+
+function confirmAccountPayment() {
+  document.getElementById('paymentMethod').value = 'account';  // 혹시 모르니 추가
+  if (!validateBeforePayment(true)) return;   // 🔥 기본 검증 다 하기
+
+  alert('계좌이체 주문이 완료되었습니다!\n지정된 계좌로 송금 부탁드립니다.');
+  saveOrderToServer('account');
+}
 // 🔥 버튼 활성화 체크
 function checkSubmitEnabled() {
   const hasItems = selectedItems.length > 0;
@@ -511,10 +579,22 @@ function checkSubmitEnabled() {
     depositorChecked = depositorName !== '';
   }
 
-  const submitButton = document.getElementById('submitButton');
-  submitButton.disabled = !(hasItems && hasContact && hasName && hasAddress && paymentMethod && privacyChecked && refundChecked && depositorChecked);
 }
 
+function checkAccountConfirmEnabled() {
+  const depositorName = document.getElementById('depositorName').value.trim();
+  const hasItems = selectedItems.length > 0;
+  const hasContact = document.getElementById('contact').value.trim() !== '';
+  const hasName = document.getElementById('name').value.trim() !== '';
+  const hasAddress = document.getElementById('address').value.trim() !== '';
+  const privacyChecked = document.getElementById('privacyConsent').checked;
+  const refundChecked = document.getElementById('refundConsent').checked;
+
+  const accountConfirmButton = document.getElementById('accountConfirmButton');
+  const allOk = hasItems && hasContact && hasName && hasAddress && depositorName && privacyChecked && refundChecked;
+
+  accountConfirmButton.disabled = !allOk;
+}
 // 🔥 입력 변화 감지
 document.getElementById('contact').addEventListener('input', checkSubmitEnabled);
 document.getElementById('name').addEventListener('input', checkSubmitEnabled);
@@ -523,6 +603,14 @@ document.getElementById('paymentMethod').addEventListener('change', checkSubmitE
 document.getElementById('privacyConsent').addEventListener('change', checkSubmitEnabled);
 document.getElementById('refundConsent').addEventListener('change', checkSubmitEnabled);
 document.getElementById('depositorName').addEventListener('input', checkSubmitEnabled);
+
+document.getElementById('depositorName').addEventListener('input', checkAccountConfirmEnabled);
+document.getElementById('contact').addEventListener('input', checkAccountConfirmEnabled);
+document.getElementById('name').addEventListener('input', checkAccountConfirmEnabled);
+document.getElementById('address').addEventListener('input', checkAccountConfirmEnabled);
+document.getElementById('privacyConsent').addEventListener('change', checkAccountConfirmEnabled);
+document.getElementById('refundConsent').addEventListener('change', checkAccountConfirmEnabled);
+
 </script>
 </body>
 </html>
