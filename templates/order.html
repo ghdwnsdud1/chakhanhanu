@@ -182,9 +182,10 @@
   <label style="font-size: 14px; margin-top: 10px; display: block;">
     <input type="checkbox" id="refundConsent">
     <b>[필수]</b> 환불 및 교환 정책에 동의합니다. <br>
-    - 주문 완료 후 포장 준비가 시작되면 환불이 불가합니다.<br>
-    - 상품 하자(불량) 시 수령 후 24시간 이내 문의 주시면 교환 또는 환불해드립니다.<br>
-    - 문의 및 환불 요청: 카카오톡 또는 매장으로 전화 부탁드립니다 (031-500-8876))
+- <u>서비스 제공 기간</u>: 결제일로부터 1~3일 이내 배송됩니다.<br>
+- <u>취소 및 환불</u>: 포장 준비 전까지 주문 취소 및 환불이 가능합니다.<br>
+- <u>교환 및 환불</u>: 제품 하자 시, 수령 후 24시간 이내 문의 시 교환 또는 환불해드립니다.<br>
+- 문의: 카카오톡 또는 매장 (031-500-8876)
   </label>
 </div>
 
@@ -415,9 +416,6 @@ document.getElementById('contact').addEventListener('input', function(e) {
   else e.target.value = `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7, 11)}`;
 });
 
-// 🔥 주문 서버 전송
-document.getElementById('submitButton').addEventListener('click', submitOrder);
-
  function payByCard() {
   document.getElementById('paymentMethod').value = 'card'; // 입금자명/현금영수증 숨기기
   if (!validateBeforePayment()) return;
@@ -512,6 +510,7 @@ function validateBeforePayment(isAccount = false) {
 }
 
 function saveOrderToServer(paymentMethod) {
+console.log("🔥 saveOrderToServer 실행됨", paymentMethod);
   const orderData = {
     items: selectedItems,
     totalAmount: document.getElementById('finalAmount').innerText,
@@ -535,8 +534,9 @@ function saveOrderToServer(paymentMethod) {
   })
   .then(response => response.json())
   .then(data => {
-    console.log('주문 저장 성공:', data);
-  })
+  console.log('주문 저장 성공:', data);
+  window.location.href = '/success';  // 이 줄 추가 (주문 완료 후 이동)
+})
   .catch(error => {
     console.error('주문 저장 실패:', error);
   });

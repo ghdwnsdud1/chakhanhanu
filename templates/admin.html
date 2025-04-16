@@ -65,6 +65,10 @@
 
 <h1>🐮 착한한우 주문 관리 페이지 🐷</h1>
 
+<div style="text-align: center; margin-bottom: 20px;">
+  <input type="text" id="searchInput" placeholder="이름, 연락처, 주소 검색" style="width: 300px; padding: 8px; font-size: 16px;">
+</div>
+
 <div style="display: flex; justify-content: center;">
   <table>
     <thead>
@@ -89,99 +93,86 @@
 </div>
 
 <script>
-// ✅ 주문 불러오기
-async function loadOrders() {
-  try {
-    const response = await fetch('/get-orders');
-    const orders = await response.json();
+  async function fetchOrders() {
+    try {
+      const res = await fetch('/get-orders');
+      const orders = await res.json();
+      const tbody = document.getElementById('orderTableBody');
+      const keyword = document.getElementById('searchInput')?.value?.toLowerCase() || '';
+      tbody.innerHTML = '';
 
-    const tableBody = document.getElementById('orderTableBody');
-    tableBody.innerHTML = '';
+      orders 
+      .filter(order => {
+        const combined = `${order.name} ${order.contact} ${order.address}`.toLowerCase();
+        return combined.includes(keyword);
+      })
+        .forEach(order => {
+          const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${order.timestamp || '-'}</td>
+          <td>${order.name || '-'}</td>
+          <td>${order.contact || '-'}</td>
+          <td>${order.address || '-'}</td>
+          <td>${order.doorcode || '-'}</td>
+          <td>${order.items ? order.items.map(item => `${item.meat} ${item.weight}${item.type === 'marinated' ? '개' : 'g'}`).join('<br>') : '-'}</td>
+          <td>${order.paymentMethod === 'account' ? '계좌이체' : order.paymentMethod === 'card' ? '카드결제' : '-'}</td>
+          <td>${order.paymentMethod === 'account' ? (order.depositorName || '-') : '-'}</td>
+          <td>${order.paymentMethod === 'account' ? (order.cashReceipt || '-') : '-'}</td>
+          <td>${order.totalAmount || '-'}</td>
+          <td class="${order.is_paid ? 'paid' : 'unpaid'}">${order.is_paid ? '완료' : '미완료'}</td>
+          <td>
+            ${!order.is_paid ? `<button onclick="markAsPaid('${order._id}')">결제완료</button>` : ''}
+            <button class="delete" onclick="deleteOrder('${order._id}')">삭제</button>
+          </td>
+        `;
+        tbody.appendChild(row);
 
-    orders.forEach((order, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${order.timestamp || '-'}</td>
-        <td>${order.name || '-'}</td>
-        <td>${order.contact || '-'}</td>
-        <td>${order.address || '-'}</td>
-        <td>${order.doorcode || '-'}</td>
-        <td>
-          ${order.items ? order.items.map(item => `${item.meat} ${item.weight}${item.type === 'marinated' ? '개' : 'g'}`).join('<br>') : '-'}
-        </td>
-        <td>
-          ${order.paymentMethod === 'account' ? '계좌이체' : order.paymentMethod === 'card' ? '카드결제' : '-'}
-        </td>
-        <td>
-          ${order.paymentMethod === 'account' ? (order.depositorName || '-') : '-'}
-        </td>
-        <td>
-          ${order.paymentMethod === 'account' ? (order.cashReceipt || '-') : '-'}
-        </td>
-        <td>${order.totalAmount || '-'}</td>
-        <td class="${order.is_paid ? 'paid' : 'unpaid'}">
-          ${order.is_paid ? '완료' : '미완료'}
-        </td>
-        <td>
-          ${!order.is_paid ? `<button onclick="markAsPaid(${index})">결제완료</button>` : ''}
-          <button class="delete" onclick="deleteOrder(${index})">삭제</button>
-        </td>
-      `;
-      tableBody.appendChild(row);
+        if (order.requestMessage?.trim()) {
+          const requestRow = document.createElement('tr');
+          requestRow.innerHTML = `<td colspan="12" class="extra-row">📝 요청사항: ${order.requestMessage}</td>`;
+          tbody.appendChild(requestRow);
+        }
 
-      // ✅ 요청사항 있으면 추가
-      if (order.requestMessage && order.requestMessage.trim() !== '') {
-        const requestRow = document.createElement('tr');
-        requestRow.innerHTML = `<td colspan="12" class="extra-row">📝 요청사항: ${order.requestMessage}</td>`;
-        tableBody.appendChild(requestRow);
-      }
-
-      // ✅ 배송 요청사항 있으면 추가
-      if (order.deliveryRequest && order.deliveryRequest.trim() !== '') {
-        const deliveryRow = document.createElement('tr');
-        deliveryRow.innerHTML = `<td colspan="12" class="extra-row">🚚 배송 요청사항: ${order.deliveryRequest}</td>`;
-        tableBody.appendChild(deliveryRow);
-      }
-    });
-  } catch (error) {
-    console.error('주문 불러오기 실패:', error);
+        if (order.deliveryRequest?.trim()) {
+          const deliveryRow = document.createElement('tr');
+          deliveryRow.innerHTML = `<td colspan="12" class="extra-row">🚚 배송 요청사항: ${order.deliveryRequest}</td>`;
+          tbody.appendChild(deliveryRow);
+        }
+      });
+    } catch (error) {
+      console.error('주문 불러오기 실패:', error);
+    }
   }
-}
 
-// ✅ 결제 완료 처리
-async function markAsPaid(index) {
-  try {
-    const response = await fetch(`/mark-paid/${index}`, { method: 'POST' });
+  async function markAsPaid(orderId) {
+    const response = await fetch(`/mark-paid/${orderId}`, { method: 'POST' });
     if (response.ok) {
       alert('결제 완료 처리되었습니다!');
-      loadOrders();
+      fetchOrders();
     } else {
       alert('처리 실패');
     }
-  } catch (error) {
-    console.error('결제 완료 실패', error);
   }
-}
 
-// ✅ 주문 삭제 처리
-async function deleteOrder(index) {
-  if (!confirm('정말 삭제할까요?')) return;
+  async function deleteOrder(orderId) {
+    if (!confirm('정말 삭제할까요?')) return;
 
-  try {
-    const response = await fetch(`/delete-order/${index}`, { method: 'POST' });
-    if (response.ok) {
-      alert('삭제 완료');
-      loadOrders();
+    const res = await fetch(`/delete-order/${orderId}`, {
+      method: 'POST'
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert('삭제 완료!');
+      fetchOrders(); // 삭제 후 목록 갱신
     } else {
-      alert('삭제 실패');
+      alert('삭제 실패!');
     }
-  } catch (error) {
-    console.error('삭제 실패', error);
   }
-}
 
-// ✅ 페이지 열릴 때 자동으로 주문 목록 불러오기
-window.onload = loadOrders;
+  window.onload = fetchOrders;
+document.getElementById('searchInput').addEventListener('input', fetchOrders);
+
 </script>
 
 </body>
