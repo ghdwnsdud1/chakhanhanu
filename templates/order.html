@@ -160,9 +160,6 @@
 
 <div class="button-group" style="margin-bottom: 20px;">
   <button id="cardPayButton" type="button" onclick="payByCard()">💳 카드 결제</button>
-   <button id="kakaoPayButton" type="button" onclick="payByKakao()" style="font-size: 17px;">
-    🟡 카카오페이 결제
-  </button>
   <button id="accountPayButton" type="button" onclick="showAccountFields()">🏦 계좌이체</button>
 </div>
 
@@ -188,7 +185,6 @@
 - 문의: 카카오톡 또는 매장 (031-500-8876)
   </label>
 </div>
-
 <input type="hidden" id="paymentMethod">
 
 <hr>
@@ -416,57 +412,27 @@ document.getElementById('contact').addEventListener('input', function(e) {
   else e.target.value = `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7, 11)}`;
 });
 
- function payByCard() {
-  document.getElementById('paymentMethod').value = 'card'; // 입금자명/현금영수증 숨기기
+function payByCard() {
+  document.getElementById('paymentMethod').value = 'card';
   if (!validateBeforePayment()) return;
 
-  const IMP = window.IMP;
-  IMP.init('imp20083434'); // 네 가맹점 코드 넣기
+  const name = document.getElementById('name').value;
+  const amount = Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, ''));
 
-  IMP.request_pay({
-    pg: 'html5_inicis',
-    pay_method: 'card',
-    merchant_uid: 'order_' + new Date().getTime(),
-    name: '착한한우 고기 주문',
-    amount: Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, '')),
-    buyer_name: document.getElementById('name').value,
-    buyer_tel: document.getElementById('contact').value,
-    buyer_addr: document.getElementById('address').value
-  }, function (rsp) {
-    if (rsp.success) {
-      alert('카드 결제 성공!');
-      saveOrderToServer('card');
-    } else {
-      alert('카드 결제 실패 😥');
-    }
-  });
+  // 주문서 정보 설정
+  document.querySelector('input[name="P_UNAME"]').value = name;
+  document.querySelector('input[name="P_AMT"]').value = amount;
+  document.querySelector('input[name="P_GOODS"]').value = '착한한우 고기 세트';
+  document.querySelector('input[name="P_OID"]').value = 'order_' + Date.now();
+
+  // 서버에 주문 정보 저장
+  saveOrderToServer('card');
+
+  // 결제창 띄우기
+  document.getElementById('paymentForm').submit();
 }
 
-function payByKakao() {
-  document.getElementById('paymentMethod').value = 'kakao';  // 🔥 (카카오 선택 표시)
-  if (!validateBeforePayment()) return;
 
-  const IMP = window.IMP;
-  IMP.init('imp20083434'); // 네 가맹점 코드
-
-  IMP.request_pay({
-    pg: 'kakaopay',
-    pay_method: 'card',
-    merchant_uid: 'order_' + new Date().getTime(),
-    name: '착한한우 고기 주문',
-    amount: Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, '')),
-    buyer_name: document.getElementById('name').value,
-    buyer_tel: document.getElementById('contact').value,
-    buyer_addr: document.getElementById('address').value
-  }, function (rsp) {
-    if (rsp.success) {
-      alert('카카오페이 결제 성공!');
-      saveOrderToServer('kakao');
-    } else {
-      alert('카카오페이 결제 실패 😥');
-    }
-  });
-}
 function payByAccount() {
   document.getElementById('paymentMethod').value = 'account';
   accountFields.style.display = 'block'; // 계좌이체 누르면 입금자명/현금영수증 보여주기
@@ -611,6 +577,8 @@ document.getElementById('address').addEventListener('input', checkAccountConfirm
 document.getElementById('privacyConsent').addEventListener('change', checkAccountConfirmEnabled);
 document.getElementById('refundConsent').addEventListener('change', checkAccountConfirmEnabled);
 
+
 </script>
 </body>
 </html>
+
