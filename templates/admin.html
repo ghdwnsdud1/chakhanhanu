@@ -8,9 +8,15 @@
   <style>
     body {
       font-family: sans-serif;
+      display: flex;
+      justify-content: center;
       padding: 20px;
+      margin: 0;
+      background-color: #fdfdfd;
+    }
+    .container {
       max-width: 1200px;
-      margin: auto;
+      width: 100%;
     }
     h1 {
       text-align: center;
@@ -62,17 +68,27 @@
   </style>
 </head>
 <body>
+<div class="container">
 
-<h1>🐮 착한한우 주문 관리 페이지 🐷</h1>
+  <h1>🐮 착한한우 주문 관리 페이지 🐷</h1>
 
-<div style="text-align: center; margin-bottom: 20px;">
-  <input type="text" id="searchInput" placeholder="이름, 연락처, 주소 검색" style="width: 300px; padding: 8px; font-size: 16px;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <input type="text" id="searchInput" placeholder="이름, 연락처, 주소 검색" style="width: 300px; padding: 8px; font-size: 16px;">
+  </div>
+
+  <div id="orderContainer"></div>
+  <div style="text-align: center; margin-top: 20px;">
+    <button onclick="downloadExcel()">📥 엑셀로 저장하기</button>
+  </div>
+
 </div>
 
-<div id="orderContainer"></div>
-<button onclick="downloadExcel()">📥 엑셀로 저장하기</button>
-
 <script>
+function formatWeight(weight, type) {
+  if (type === 'marinated') return `${weight.toLocaleString()}개`;
+  return `${weight.toLocaleString()}g`;
+}
+
 async function fetchOrders() {
   try {
     const res = await fetch('/get-orders');
@@ -98,9 +114,9 @@ async function fetchOrders() {
 
       section.innerHTML = `
         <div onclick="toggleSection('${sectionId}')" 
-     style="display: inline-block; padding: 8px 16px; background-color: #f7f7f7; border: 1px solid #ccc; border-radius: 8px; box-shadow: 1px 1px 4px rgba(0,0,0,0.1); cursor: pointer; transition: background-color 0.2s; margin-bottom: 10px;">
-  <span style="font-size: 20px; font-weight: bold; color: #333;">📅 ${date}</span>
-</div>
+         style="display: inline-block; padding: 8px 16px; background-color: #f7f7f7; border: 1px solid #ccc; border-radius: 8px; box-shadow: 1px 1px 4px rgba(0,0,0,0.1); cursor: pointer; transition: background-color 0.2s; margin-bottom: 10px;">
+          <span style="font-size: 20px; font-weight: bold; color: #333;">📅 ${date}</span>
+        </div>
         <table id="${sectionId}" style="display: block;">
           <thead>
             <tr>
@@ -120,7 +136,7 @@ async function fetchOrders() {
           </thead>
           <tbody>
             ${grouped[date].map(order => {
-              const items = order.items.map(item => `${item.meat} ${item.weight}${item.type === 'marinated' ? '개' : 'g'}`).join(', ');
+              const items = order.items.map(item => `${item.meat} ${formatWeight(item.weight, item.type)}`).join(', ');
               return `
                 <tr data-order-id="${order._id}">
                   <td>${order.timestamp || '-'}</td>

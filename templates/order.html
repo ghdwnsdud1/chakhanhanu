@@ -5,6 +5,7 @@
   <title>착한한우 고기 주문서</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google" content="notranslate">
+  <link rel="stylesheet" href="/static/style.css">
   <style>
     body {
       font-family: sans-serif;
@@ -77,6 +78,65 @@
       margin-top: 10px;
       font-weight: bold;
     }
+ .meat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.meat-block select {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.qty-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  align-items: center;
+}
+
+.qty-row button {
+  width: 45px;
+  height: 45px;
+  font-size: 18px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.qty-row input[type="number"] {
+  width: 200px;
+  height: 42px;
+  text-align: center;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.add-btn {
+  width: 100%;
+  height: 45px;
+  font-size: 18px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto; /* 가운데 정렬 */
+}
+.add-btn:hover {
+  background-color: #45a049;
+}
+
+
   </style>
 <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 </head>
@@ -87,36 +147,101 @@
 <h2>고기 주문서</h2>
 
 <!-- 돼지고기 -->
+<!-- 🐷 돼지고기 선택 -->
 <h2>🐷 돼지고기 선택</h2>
-<select id="porkSelect">
+<div class="meat-block">
+  <select id="porkSelect" onchange="setDefaultQty('porkSelect','porkQty')">
   <option value="">-- 부위 선택 --</option>
+  <option value="삼겹살">삼겹살 (100g 2,967원)</option>
+  <option value="오겹살">오겹살 (100g 3,134원)</option>
+  <option value="목살">목살 (100g 2,634원)</option>
+  <option value="앞다리살">앞다리살 (100g 1,650원)</option>
+  <option value="찌개용">찌개용 (100g 1,650원)</option>
+  <option value="등갈비">등갈비 (100g 2,967원)</option>
+  <option value="갈빗대벌집삼겹살">갈빗대벌집삼겹살 (100g 3,300원)</option>
+  <option value="생 대패삼겹살">생 대패삼겹살 (100g 2,967원)</option>
+  <option value="돈 등심">돈 등심 (100g 1,650원)</option>
+  <option value="돈 안심">돈 안심 (100g 1,650원)</option>
+  <option value="항정살">항정살 (100g 6,500원)</option>
+  <option value="가브리살(등심덧살)">가브리살(등심덧살) (100g 5,500원)</option>
+  <option value="갈매기살">갈매기살 (100g 5,000원)</option>
+  <option value="꼬들살">꼬들살 (100g 3,800원)</option>
+  <option value="앞 사태(껍질O)">앞 사태(껍질O) (100g 1,967원)</option>
+  <option value="돼지갈비">돼지갈비 (100g 1,650원)</option>
 </select>
-<input type="number" id="porkWeight" placeholder="중량 (10g 단위)" step="10" min="10">
-<button type="button" onclick="addItem('pork')">추가하기</button>
 
-<!-- 소고기 -->
+  <div class="qty-row">
+   <button onclick="changeQuantity('porkQty', -1, 'pork')">➖</button>
+<input type="number" id="porkQty" value="0" readonly>
+<button onclick="changeQuantity('porkQty', 1, 'pork')">➕</button>
+<span id="porkQtyDisplay">(현재 0g)</span>
+
+  </div>
+
+  <button class="add-btn" onclick="addSelectedItem('pork')">추가하기</button>
+</div>
+
+<!-- 🐮 소고기 선택 -->
 <h2>🐮 소고기 선택</h2>
-<select id="beefSelect">
-  <option value="">-- 부위 선택 --</option>
-</select>
-<input type="number" id="beefWeight" placeholder="중량 (10g 단위)" step="10" min="10">
-<button type="button" onclick="addItem('beef')">추가하기</button>
+<div class="meat-block">
+  <select id="beefSelect" onchange="setDefaultQty('beefSelect','beefQty')">
+    <option value="">-- 부위 선택 --</option>
+    <option value="한우 꽃등심">한우 꽃등심 (100g 16,800원)</option>
+    <option value="한우 채끝등심">한우 채끝등심 (100g 18,000원)</option>
+    <option value="한우 안심">한우 안심 (100g 18,800원)</option>
+    <option value="한우 치마살">한우 치마살 (100g 21,800원)</option>
+    <option value="한우 살치살">한우 살치살 (100g 21,800원)</option>
+    <option value="한우 꽃갈비살">한우 꽃갈비살 (100g 21,800원)</option>
+    <option value="한우 부채살">한우 부채살 (100g 18,000원)</option>
+    <option value="한우 업진살">한우 업진살 (100g 18,000원)</option>
+    <option value="한우 갈비살">한우 갈비살 (100g 16,800원)</option>
+    <option value="한우 제비추리">한우 제비추리 (100g 18,000원)</option>
+    <option value="한우 안창살">한우 안창살 (100g 29,800원)</option>
+    <option value="한우 토시살">한우 토시살 (100g 21,800원)</option>
+    <option value="한우 양지 국거리">한우 양지 국거리 (100g 7,500원)</option>
+    <option value="한우 목심 양지">한우 목심 양지 (100g 5,000원)</option>
+    <option value="한우 사태">한우 사태 (100g 5,000원)</option>
+    <option value="한우 우둔살">한우 우둔살 (100g 7,000원)</option>
+    <option value="한우 다짐육">한우 다짐육 (100g 7,000원)</option>
+    <option value="한우 육회">한우 육회 (100g 7,500원)</option>
+    <option value="한우 이유식용 안심">한우 이유식용 안심 (100g 18,800원)</option>
+    <option value="한우 이유식용 우둔살">한우 이유식용 우둔살 (100g 7,000원)</option>
+  </select>
 
-<!-- 양념육 -->
+  <div class="qty-row">
+    <button onclick="changeQuantity('beefQty', -1, 'beef')">➖</button>
+    <input type="number" id="beefQty" value="0" readonly>
+    <button onclick="changeQuantity('beefQty', 1, 'beef')">➕</button>
+    <span id="beefQtyDisplay">(현재 0g)</span>
+  </div>
+
+  <button class="add-btn" onclick="addSelectedItem('beef')">추가하기</button>
+</div>
+
+<!-- 🍖 양념육 선택 -->
 <h2>🍖 양념육 선택</h2>
-<select id="marinatedSelect">
+<div class="meat-block">
+  <select id="marinatedSelect" onchange="setDefaultQty('marinatedSelect','marinatedQty')">
   <option value="">-- 양념육을 선택하세요 --</option>
   <option value="한우 사골곰탕">한우 사골곰탕 (6,000원)</option>
   <option value="한우 고기듬뿍 사골곰탕">한우 고기듬뿍 사골곰탕 (10,000원)</option>
-  <option value="고추장 순살 닭갈비" disabled>고추장 순살 닭갈비 700g (9,900원) - 품절</option>
-  <option value="한돈 고추장 불고기" disabled>한돈 고추장 불고기 800g (8,900원) - 품절</option>
-  <option value="한돈 생 양념목살" disabled>한돈 생 양념목살 900g (14,800원) - 품절</option>
-  <option value="한우 1++ 찹스테이크" disabled>한우 1++ 찹스테이크 360g (16,800원) - 품절</option>
-  <option value="너를 꽁 찜닭" disabled>너를 꽁 찜닭 고기만 800g (10,800원) - 품절</option>
+  <option value="고추장 순살 닭갈비 700g" disabled>고추장 순살 닭갈비 700g (9,900원) - 품절</option>
+  <option value="한돈 고추장 불고기 800g" disabled>한돈 고추장 불고기 800g (8,900원) - 품절</option>
+  <option value="한돈 생 양념목살 900g" disabled>한돈 생 양념목살 900g (14,800원) - 품절</option>
+  <option value="한우 1++ 찹스테이크 360g" disabled>한우 1++ 찹스테이크 360g (16,800원) - 품절</option>
+  <option value="너를 꽁 찜닭  800g" disabled>너를 꽁 찜닭 고기만 800g (10,800원) - 품절</option>
 </select>
-<input type="number" id="marinatedWeight" placeholder="수량 (1개 단위)" min="1" step="1">
-<button type="button" onclick="addItem('marinated')">추가하기</button>
 
+
+  <div class="qty-row">
+    <button onclick="changeQuantity('marinatedQty', -1, 'marinated')">➖</button>
+<input type="number" id="marinatedQty" value="0" readonly>
+<button onclick="changeQuantity('marinatedQty', 1, 'marinated')">➕</button>
+<span id="marinatedQtyDisplay">(현재 0개)</span>
+
+</div>
+<button class="add-btn" onclick="addSelectedItem('marinated')">추가하기</button>
+</div>
 <hr>
 
 <!-- 선택한 상품 -->
@@ -215,11 +340,11 @@ const porkList = {
   "꼬들살": 3800, "앞 사태(껍질O)": 1967, "돼지갈비": 1650
 };
 const beefList = {
-  "한우 꽃등심": 18800, "한우 채끝등심": 18000, "한우 안심": 18800, "한우 치마살": 21800,
+  "한우 꽃등심": 16800, "한우 채끝등심": 18000, "한우 안심": 18800, "한우 치마살": 21800,
   "한우 살치살": 21800, "한우 꽃갈비살": 21800, "한우 부채살": 18000, "한우 업진살": 18000,
-  "한우 갈비살": 18000, "한우 제비추리": 18000, "한우 안창살": 29800, "한우 토시살": 21800,
+  "한우 갈비살": 16800, "한우 제비추리": 18000, "한우 안창살": 29800, "한우 토시살": 21800,
   "한우 양지 국거리": 7500, "한우 목심 양지": 6000, "한우 사태": 5000,
-  "한우 우둔살": 7000, "한우 다짐육": 7000, "한우 육회": 7500
+  "한우 우둔살": 7000, "한우 다짐육": 7000, "한우 육회": 7500, "한우 이유식용 안심": 1880, "한우 이유식용 우둔살": 700
 };
 const marinatedList = {
   "한우 사골곰탕": 6000,
@@ -233,49 +358,32 @@ const marinatedList = {
 
 let selectedItems = [];
 
-// 🔥 드롭다운 채우기
-for (let meat in porkList) {
-  const opt = document.createElement('option');
-  opt.value = meat;
-  opt.textContent = `${meat} (100g ${porkList[meat]}원)`;
-  document.getElementById('porkSelect').appendChild(opt);
-}
-for (let meat in beefList) {
-  const opt = document.createElement('option');
-  opt.value = meat;
-  opt.textContent = `${meat} (100g ${beefList[meat]}원)`;
-  document.getElementById('beefSelect').appendChild(opt);
-}
-
-// 🔥 고기/양념 추가
-function addItem(type) {
-  let select, weightInput, priceList;
+function addSelectedItem(type) {
+  let select, qtyInput, priceList;
 
   if (type === 'pork') {
     select = document.getElementById('porkSelect');
-    weightInput = document.getElementById('porkWeight');
+    qtyInput = document.getElementById('porkQty');
     priceList = porkList;
   } else if (type === 'beef') {
     select = document.getElementById('beefSelect');
-    weightInput = document.getElementById('beefWeight');
+    qtyInput = document.getElementById('beefQty');
     priceList = beefList;
-  } else {
+  } else if (type === 'marinated') {
     select = document.getElementById('marinatedSelect');
-    weightInput = document.getElementById('marinatedWeight');
+    qtyInput = document.getElementById('marinatedQty');
     priceList = marinatedList;
   }
 
   const meat = select.value;
-  let weight = parseInt(weightInput.value);
+  const quantity = parseInt(qtyInput.value);
+  if (!meat || quantity <= 0) {
+    alert("부위와 수량을 정확히 선택해주세요.");
+    return;
+  }
 
-  if (!meat || isNaN(weight) || weight <= 0) {
-    alert('부위와 중량(또는 수량)을 정확히 입력해주세요.');
-    return;
-  }
-  if ((type !== 'marinated') && (weight % 10 !== 0)) {
-    alert('고기는 10g 단위로 입력해야 합니다.');
-    return;
-  }
+  const isBabyMeat = (type === 'beef') && (meat === '이유식용 안심' || meat === '이유식용 우둔살');
+  const weight = type === 'marinated' ? quantity : quantity * (isBabyMeat ? 10 : 100);
 
   const pricePerUnit = priceList[meat];
   const existing = selectedItems.find(item => item.meat === meat);
@@ -286,9 +394,48 @@ function addItem(type) {
     selectedItems.push({ meat, weight, pricePerUnit, type });
   }
 
+  qtyInput.value = 0;
   select.value = "";
-  weightInput.value = "";
+  updateQtyDisplay(type);
   updateList();
+}
+
+function changeQuantity(id, delta, type) {
+  const input = document.getElementById(id);
+  const display = document.getElementById(id + 'Display');
+  let current = parseInt(input.value) || 0;
+  let next = Math.max(0, current + delta);
+  input.value = next;
+
+  updateQtyDisplay(type);
+}
+
+function updateQtyDisplay(type) {
+  let select, qtyInput, display;
+
+  if (type === 'pork') {
+    select = document.getElementById('porkSelect');
+    qtyInput = document.getElementById('porkQty');
+    display = document.getElementById('porkQtyDisplay');
+  } else if (type === 'beef') {
+    select = document.getElementById('beefSelect');
+    qtyInput = document.getElementById('beefQty');
+    display = document.getElementById('beefQtyDisplay');
+  } else if (type === 'marinated') {
+    select = document.getElementById('marinatedSelect');
+    qtyInput = document.getElementById('marinatedQty');
+    display = document.getElementById('marinatedQtyDisplay');
+  }
+
+  const meat = select.value;
+  const quantity = parseInt(qtyInput.value) || 0;
+  const isBabyMeat = (type === 'beef') && (meat === '이유식용 안심' || meat === '이유식용 우둔살');
+  const unit = type === 'marinated' ? '개' : 'g';
+  const grams = type === 'marinated' ? quantity : quantity * (isBabyMeat ? 10 : 100);
+
+  if (display) {
+    display.textContent = `(현재 ${grams}${unit})`;
+  }
 }
 
 // 🔥 상품 목록 업데이트
@@ -310,10 +457,13 @@ function updateList() {
       totalWeight += item.weight;
     }
 
+    const formattedWeight = item.weight.toLocaleString() + (item.type === 'marinated' ? '개' : 'g');
+    const formattedPrice = itemPrice.toLocaleString();
+
     const div = document.createElement('div');
     div.className = 'item';
     div.innerHTML = `
-      ${item.meat} - ${item.weight}${item.type === 'marinated' ? '개' : 'g'} - ${itemPrice.toLocaleString()}원
+      ${item.meat} - ${formattedWeight} - ${formattedPrice}원
       <div class="item-buttons">
         <button class="action-btn" onclick="editItem(${index})">✏️</button>
         <button class="action-btn" onclick="removeItem(${index})">🗑️</button>
@@ -326,7 +476,7 @@ function updateList() {
 
   const roundedPrice = Math.floor(totalPrice / 100) * 100;
 
-  document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight}g / 총 수량: ${totalCount}개`;
+  document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight.toLocaleString()}g / 총 수량: ${totalCount.toLocaleString()}개`;
   document.getElementById('totalPrice').textContent = `총 금액: ${roundedPrice.toLocaleString()}원`;
   document.getElementById('finalAmount').textContent = `${roundedPrice.toLocaleString()}원`;
 
@@ -476,6 +626,20 @@ function validateBeforePayment(isAccount = false) {
   return true;
 }
 
+function setDefaultQty(selectId, qtyId) {
+  const selected = document.getElementById(selectId).value;
+  document.getElementById(qtyId).value = selected ? 1 : 0;
+}
+
+function changeQuantity(id, delta, type = null) {
+  const input = document.getElementById(id);
+  const current = parseInt(input.value) || 0;
+  const updated = Math.max(0, current + delta);
+  input.value = updated;
+
+  if (type) updateQtyDisplay(type);  // ⭐ 이제는 작동됨!
+}
+
 function saveOrderToServer(paymentMethod) {
 console.log("🔥 saveOrderToServer 실행됨", paymentMethod);
   const orderData = {
@@ -521,6 +685,48 @@ function confirmAccountPayment() {
   alert('계좌이체 주문이 완료되었습니다!\n지정된 계좌로 송금 부탁드립니다.');
   saveOrderToServer('account');
 }
+
+function addSelectedItem(type) {
+  let select, qtyInput, priceList;
+
+  if (type === 'pork') {
+    select = document.getElementById('porkSelect');
+    qtyInput = document.getElementById('porkQty');
+    priceList = porkList;
+  } else if (type === 'beef') {
+    select = document.getElementById('beefSelect');
+    qtyInput = document.getElementById('beefQty');
+    priceList = beefList;
+  } else if (type === 'marinated') {
+    select = document.getElementById('marinatedSelect');
+    qtyInput = document.getElementById('marinatedQty');
+    priceList = marinatedList;
+  }
+
+  const meat = select.value;
+  const quantity = parseInt(qtyInput.value);
+  if (!meat || quantity <= 0) {
+    alert("부위와 수량을 정확히 선택해주세요.");
+    return;
+  }
+
+  const isBabyMeat = (type === 'beef') && (meat === '이유식용 안심' || meat === '이유식용 우둔살');
+  const weight = type === 'marinated' ? quantity : quantity * (isBabyMeat ? 10 : 100);
+
+  const pricePerUnit = priceList[meat];
+  const existing = selectedItems.find(item => item.meat === meat);
+
+  if (existing) {
+    existing.weight += weight;
+  } else {
+    selectedItems.push({ meat, weight, pricePerUnit, type });
+  }
+
+  qtyInput.value = 0;
+  select.value = "";
+  updateList();
+}
+
 // 🔥 버튼 활성화 체크
 function checkSubmitEnabled() {
   const hasItems = selectedItems.length > 0;
@@ -578,6 +784,18 @@ document.getElementById('address').addEventListener('input', checkAccountConfirm
 document.getElementById('privacyConsent').addEventListener('change', checkAccountConfirmEnabled);
 document.getElementById('refundConsent').addEventListener('change', checkAccountConfirmEnabled);
 
+document.getElementById('porkSelect').addEventListener('change', () => {
+  document.getElementById('porkQty').value = 1;
+  updateQtyDisplay('pork');
+});
+document.getElementById('beefSelect').addEventListener('change', () => {
+  document.getElementById('beefQty').value = 1;
+  updateQtyDisplay('beef');
+});
+document.getElementById('marinatedSelect').addEventListener('change', () => {
+  document.getElementById('marinatedQty').value = 1;
+  updateQtyDisplay('marinated');
+});
 
 </script>
 <form id="paymentForm" method="POST" action="https://mobile.inicis.com/smart/payment/" target="_blank">

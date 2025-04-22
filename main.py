@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # 1. FastAPI 앱 생성
 app = FastAPI()
 
 # 2. 미들웨어 등록
 app.add_middleware(SessionMiddleware, secret_key="supersecretkey123")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 3. 라우터 import 및 등록 (미들웨어 이후!)
 from payment_routes import router as payment_router
