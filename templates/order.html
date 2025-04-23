@@ -82,7 +82,7 @@
     }
     
     .qty-row input[type="number"] {
-      width: 200px;
+      width: 150px;
       height: 42px;
       text-align: center;
       font-size: 16px;
@@ -183,6 +183,23 @@
       border: 1px solid #ccc;
       border-radius: 8px;
     }
+.primary-button {
+  background-color: #d2a56e !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 12px !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  cursor: pointer;
+  width: 100% !important;
+  transition: background-color 0.2s ease;
+}
+
+.primary-button:hover {
+  background-color: #c69c65 !important;
+}
+
   </style>
   <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 </head>
@@ -205,7 +222,6 @@
   ※ 이유식용 포함, 돼지고기·소고기는 최대 <u>5,000g</u>까지,<br>
   간편식은 최대 <u>20개</u>까지만 선택 가능합니다.
 </p>
-
     <div class="meat-block">
       <select id="porkSelect" onchange="setDefaultQty('porkSelect','porkQty')">
         <option value="">-- 부위 선택 --</option>
@@ -240,6 +256,10 @@
 
   <!-- 소고기 -->
   <div id="beefSection" class="meat-section" style="display:none;">
+<p style="text-align: center; color: #b94a48; font-size: 14px; font-weight: bold; margin-bottom: 8px;">
+  ※ 이유식용 포함, 돼지고기·소고기는 최대 <u>5,000g</u>까지,<br>
+  간편식은 최대 <u>20개</u>까지만 선택 가능합니다.
+</p>
     <div class="meat-block">
       <select id="beefSelect" onchange="setDefaultQty('beefSelect','beefQty')">
         <option value="">-- 부위 선택 --</option>
@@ -278,6 +298,10 @@
 
   <!-- 간편식 -->
   <div id="marinatedSection" class="meat-section" style="display:none;">
+<p style="text-align: center; color: #b94a48; font-size: 14px; font-weight: bold; margin-bottom: 8px;">
+  ※ 이유식용 포함, 돼지고기·소고기는 최대 <u>5,000g</u>까지,<br>
+  간편식은 최대 <u>20개</u>까지만 선택 가능합니다.
+</p>
     <div class="meat-block">
       <select id="marinatedSelect" onchange="setDefaultQty('marinatedSelect','marinatedQty')">
         <option value="">-- 간편식을 선택하세요 --</option>
@@ -323,9 +347,10 @@
 
   <!-- 배송지 저장/불러오기 -->
   <div class="button-group">
-    <button type="button" onclick="saveAddress()">📥 배송지 저장</button>
-    <button type="button" onclick="loadAddress()">📤 배송지 불러오기</button>
-  </div>
+  <button type="button" class="primary-button" onclick="saveAddress()">📥 배송지 저장</button>
+  <button type="button" class="primary-button" onclick="loadAddress()">📤 배송지 불러오기</button>
+</div>
+
 
   <!-- 배송지 입력 -->
   <div id="addressSection">
@@ -344,25 +369,16 @@
     <h2>💳 결제 방법</h2>
 
     <div class="button-group" style="margin-bottom: 20px;">
-      <button id="cardPayButton" type="button" onclick="payByCard()">💳 카드 결제</button>
-      <button id="accountPayButton" type="button" onclick="showAccountFields()">🏦 계좌이체</button>
-    </div>
+  <button id="cardPayButton" type="button" class="primary-button" onclick="payByCard()">💳 카드 결제</button>
+  <button id="accountPayButton" type="button" class="primary-button" onclick="showAccountFields()">🏦 계좌이체</button>
+</div>
 
     <!-- 계좌이체 입력칸 (처음엔 숨김) -->
     <div id="accountFields" style="display: none; margin-top: 10px;">
       <input type="text" id="depositorName" placeholder="입금자명 (필수)">
       <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
       <button id="accountConfirmButton" type="button" onclick="confirmAccountPayment()" style="
-  width: 100%;
-  height: 45px;
-  font-size: 18px;
-  background-color: #d2a56e;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 10px;
-">✅ 확인</button>
+  <button id="accountConfirmButton" type="button" class="primary-button" onclick="confirmAccountPayment()">✅ 확인</button>
 
     </div>
 
