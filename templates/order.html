@@ -5,322 +5,394 @@
   <title>착한한우 고기 주문서</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google" content="notranslate">
-  <link rel="stylesheet" href="/static/style.css">
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Noto Sans KR', sans-serif;
       padding: 20px;
+      margin: 0;
+      background-color: #fffaf0;
+    }
+    
+    .container {
       max-width: 600px;
       margin: auto;
+      border: 2px solid #d2a56e;
+      border-radius: 20px;
+      padding: 20px;
+      background-color: #fff3dc;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    h1, h2 {
+    
+    h1, h2, h3 {
       text-align: center;
     }
-    select, input[type="number"], input[type="text"], textarea, button {
-      width: 90%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 18px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
+    
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 12px;
+    }
+    
+    .tabs button {
+      flex: 1;
+      background-color: #fff7e6;
+      border: 1px solid #d2a56e;
+      padding: 10px;
+      font-weight: bold;
+      cursor: pointer;
       border-radius: 8px;
     }
-    button {
-      background-color: #4CAF50;
-      color: white;
+    
+    .tabs button.active {
+      background-color: #f2dec0;
+    }
+    
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    
+    .meat-block {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    
+    .qty-row {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      align-items: center;
+    }
+    
+    .qty-row button {
+      width: 45px;
+      height: 45px;
+      font-size: 18px;
+      background-color: #f2dec0;
+      color: black;
       border: none;
+      border-radius: 50%;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #45a049;
+    
+    .qty-row input[type="number"] {
+      width: 200px;
+      height: 42px;
+      text-align: center;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
+    
+    .add-btn {
+      width: 100%;
+      height: 45px;
+      font-size: 18px;
+      background-color: #d2a56e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto;
+    }
+    
+    .add-btn:hover {
+      background-color: #c69c65;
+    }
+    
+    button {
+      cursor: pointer;
+    }
+    
+    button:hover {
+      opacity: 0.9;
+    }
+    
     button:disabled {
       background-color: #ccc;
     }
+    
     .important {
       color: red;
       margin-left: 5px;
     }
+    
     .button-group {
       display: flex;
       gap: 10px;
       margin: 20px 0;
     }
+    
     .button-group button {
       flex: 1;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-weight: bold;
     }
+    
     #selectedItems, #requestSection, #addressSection, #paymentSection, #finalSection {
       margin-top: 20px;
       padding: 15px;
-      background: #f9f9f9;
+      background: #fff;
       border-radius: 8px;
-      border: 1px solid #ccc;
+      border: 1px solid #d2a56e;
     }
+    
     .item {
       margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+    
     .item-buttons {
       display: flex;
       gap: 5px;
     }
+    
     .action-btn {
       background: none;
       border: none;
       font-size: 20px;
       cursor: pointer;
     }
+    
     #finalAmount {
       font-size: 28px;
       text-align: center;
       margin-top: 10px;
       font-weight: bold;
     }
- .meat-block {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 30px;
-}
-
-.meat-block select {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.qty-row {
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-  align-items: center;
-}
-
-.qty-row button {
-  width: 45px;
-  height: 45px;
-  font-size: 18px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.qty-row input[type="number"] {
-  width: 200px;
-  height: 42px;
-  text-align: center;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-.add-btn {
-  width: 100%;
-  height: 45px;
-  font-size: 18px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  display: block;
-  margin: 0 auto; /* 가운데 정렬 */
-}
-.add-btn:hover {
-  background-color: #45a049;
-}
-
-
+    
+    input[type="text"], textarea, input[type="number"] {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
   </style>
-<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 </head>
 
 <body>
+<div class="container">
+  <h1>🐮 착한한우 🐷</h1>
+  <h2>고기 주문서</h2>
 
-<h1>🐮 착한한우 🐷</h1>
-<h2>고기 주문서</h2>
-
-<!-- 돼지고기 -->
-<!-- 🐷 돼지고기 선택 -->
-<h2>🐷 돼지고기 선택</h2>
-<div class="meat-block">
-  <select id="porkSelect" onchange="setDefaultQty('porkSelect','porkQty')">
-  <option value="">-- 부위 선택 --</option>
-  <option value="삼겹살">삼겹살 (100g 2,967원)</option>
-  <option value="오겹살">오겹살 (100g 3,134원)</option>
-  <option value="목살">목살 (100g 2,634원)</option>
-  <option value="앞다리살">앞다리살 (100g 1,650원)</option>
-  <option value="찌개용">찌개용 (100g 1,650원)</option>
-  <option value="등갈비">등갈비 (100g 2,967원)</option>
-  <option value="갈빗대벌집삼겹살">갈빗대벌집삼겹살 (100g 3,300원)</option>
-  <option value="생 대패삼겹살">생 대패삼겹살 (100g 2,967원)</option>
-  <option value="돈 등심">돈 등심 (100g 1,650원)</option>
-  <option value="돈 안심">돈 안심 (100g 1,650원)</option>
-  <option value="항정살">항정살 (100g 6,500원)</option>
-  <option value="가브리살(등심덧살)">가브리살(등심덧살) (100g 5,500원)</option>
-  <option value="갈매기살">갈매기살 (100g 5,000원)</option>
-  <option value="꼬들살">꼬들살 (100g 3,800원)</option>
-  <option value="앞 사태(껍질O)">앞 사태(껍질O) (100g 1,967원)</option>
-  <option value="돼지갈비">돼지갈비 (100g 1,650원)</option>
-</select>
-
-  <div class="qty-row">
-   <button onclick="changeQuantity('porkQty', -1, 'pork')">➖</button>
-<input type="number" id="porkQty" value="0" readonly>
-<button onclick="changeQuantity('porkQty', 1, 'pork')">➕</button>
-<span id="porkQtyDisplay">(현재 0g)</span>
-
+  <!-- 탭 메뉴 -->
+  <div class="tabs">
+    <button class="active" id="porkTab" onclick="changeTab('pork')">돼지고기</button>
+    <button id="beefTab" onclick="changeTab('beef')">소고기</button>
+    <button id="marinatedTab" onclick="changeTab('marinated')">간편식</button>
   </div>
 
-  <button class="add-btn" onclick="addSelectedItem('pork')">추가하기</button>
-</div>
+  <!-- 돼지고기 -->
+  <div id="porkSection" class="meat-section">
+<p style="text-align: center; color: #b94a48; font-size: 14px; font-weight: bold; margin-bottom: 8px;">
+  ※ 이유식용 포함, 돼지고기·소고기는 최대 <u>5,000g</u>까지,<br>
+  양념육은 최대 <u>20개</u>까지만 선택 가능합니다.
+</p>
 
-<!-- 🐮 소고기 선택 -->
-<h2>🐮 소고기 선택</h2>
-<div class="meat-block">
-  <select id="beefSelect" onchange="setDefaultQty('beefSelect','beefQty')">
-    <option value="">-- 부위 선택 --</option>
-    <option value="한우 꽃등심">한우 꽃등심 (100g 16,800원)</option>
-    <option value="한우 채끝등심">한우 채끝등심 (100g 18,000원)</option>
-    <option value="한우 안심">한우 안심 (100g 18,800원)</option>
-    <option value="한우 치마살">한우 치마살 (100g 21,800원)</option>
-    <option value="한우 살치살">한우 살치살 (100g 21,800원)</option>
-    <option value="한우 꽃갈비살">한우 꽃갈비살 (100g 21,800원)</option>
-    <option value="한우 부채살">한우 부채살 (100g 18,000원)</option>
-    <option value="한우 업진살">한우 업진살 (100g 18,000원)</option>
-    <option value="한우 갈비살">한우 갈비살 (100g 16,800원)</option>
-    <option value="한우 제비추리">한우 제비추리 (100g 18,000원)</option>
-    <option value="한우 안창살">한우 안창살 (100g 29,800원)</option>
-    <option value="한우 토시살">한우 토시살 (100g 21,800원)</option>
-    <option value="한우 양지 국거리">한우 양지 국거리 (100g 7,500원)</option>
-    <option value="한우 목심 양지">한우 목심 양지 (100g 5,000원)</option>
-    <option value="한우 사태">한우 사태 (100g 5,000원)</option>
-    <option value="한우 우둔살">한우 우둔살 (100g 7,000원)</option>
-    <option value="한우 다짐육">한우 다짐육 (100g 7,000원)</option>
-    <option value="한우 육회">한우 육회 (100g 7,500원)</option>
-    <option value="한우 이유식용 안심">한우 이유식용 안심 (100g 18,800원)</option>
-    <option value="한우 이유식용 우둔살">한우 이유식용 우둔살 (100g 7,000원)</option>
-  </select>
+    <div class="meat-block">
+      <select id="porkSelect" onchange="setDefaultQty('porkSelect','porkQty')">
+        <option value="">-- 부위 선택 --</option>
+        <option value="삼겹살">삼겹살 (100g 2,967원)</option>
+        <option value="오겹살">오겹살 (100g 3,134원)</option>
+        <option value="목살">목살 (100g 2,634원)</option>
+        <option value="앞다리살">앞다리살 (100g 1,650원)</option>
+        <option value="찌개용">찌개용 (100g 1,650원)</option>
+        <option value="등갈비">등갈비 (100g 2,967원)</option>
+        <option value="갈빗대벌집삼겹살">갈빗대벌집삼겹살 (100g 3,300원)</option>
+        <option value="생 대패삼겹살">생 대패삼겹살 (100g 2,967원)</option>
+        <option value="돈 등심">돈 등심 (100g 1,650원)</option>
+        <option value="돈 안심">돈 안심 (100g 1,650원)</option>
+        <option value="항정살">항정살 (100g 6,500원)</option>
+        <option value="가브리살(등심덧살)">가브리살(등심덧살) (100g 5,500원)</option>
+        <option value="갈매기살">갈매기살 (100g 5,000원)</option>
+        <option value="꼬들살">꼬들살 (100g 3,800원)</option>
+        <option value="앞 사태(껍질O)">앞 사태(껍질O) (100g 1,967원)</option>
+        <option value="돼지갈비">돼지갈비 (100g 1,650원)</option>
+      </select>
 
-  <div class="qty-row">
-    <button onclick="changeQuantity('beefQty', -1, 'beef')">➖</button>
-    <input type="number" id="beefQty" value="0" readonly>
-    <button onclick="changeQuantity('beefQty', 1, 'beef')">➕</button>
-    <span id="beefQtyDisplay">(현재 0g)</span>
+      <div class="qty-row">
+        <button onclick="changeQuantity('porkQty', -1, 'pork')">－</button>
+        <input type="number" id="porkQty" value="0" readonly>
+        <button onclick="changeQuantity('porkQty', 1, 'pork')">＋</button>
+        <span id="porkQtyDisplay">(현재 0g)</span>
+      </div>
+
+      <button class="add-btn" onclick="addSelectedItem('pork')">추가하기</button>
+    </div>
   </div>
 
-  <button class="add-btn" onclick="addSelectedItem('beef')">추가하기</button>
+  <!-- 소고기 -->
+  <div id="beefSection" class="meat-section" style="display:none;">
+    <div class="meat-block">
+      <select id="beefSelect" onchange="setDefaultQty('beefSelect','beefQty')">
+        <option value="">-- 부위 선택 --</option>
+        <option value="한우 꽃등심">한우 꽃등심 (100g 16,800원)</option>
+        <option value="한우 채끝등심">한우 채끝등심 (100g 18,000원)</option>
+        <option value="한우 안심">한우 안심 (100g 18,800원)</option>
+        <option value="한우 치마살">한우 치마살 (100g 21,800원)</option>
+        <option value="한우 살치살">한우 살치살 (100g 21,800원)</option>
+        <option value="한우 꽃갈비살">한우 꽃갈비살 (100g 21,800원)</option>
+        <option value="한우 부채살">한우 부채살 (100g 18,000원)</option>
+        <option value="한우 업진살">한우 업진살 (100g 18,000원)</option>
+        <option value="한우 갈비살">한우 갈비살 (100g 16,800원)</option>
+        <option value="한우 제비추리">한우 제비추리 (100g 18,000원)</option>
+        <option value="한우 안창살">한우 안창살 (100g 29,800원)</option>
+        <option value="한우 토시살">한우 토시살 (100g 21,800원)</option>
+        <option value="한우 양지 국거리">한우 양지 국거리 (100g 7,500원)</option>
+        <option value="한우 목심 양지">한우 목심 양지 (100g 5,000원)</option>
+        <option value="한우 사태">한우 사태 (100g 5,000원)</option>
+        <option value="한우 우둔살">한우 우둔살 (100g 7,000원)</option>
+        <option value="한우 다짐육">한우 다짐육 (100g 7,000원)</option>
+        <option value="한우 육회">한우 육회 (100g 7,500원)</option>
+        <option value="한우 이유식용 안심">한우 이유식용 안심 (100g 18,800원)</option>
+        <option value="한우 이유식용 우둔살">한우 이유식용 우둔살 (100g 7,000원)</option>
+      </select>
+
+      <div class="qty-row">
+        <button onclick="changeQuantity('beefQty', -1, 'beef')">－</button>
+        <input type="number" id="beefQty" value="0" readonly>
+        <button onclick="changeQuantity('beefQty', 1, 'beef')">＋</button>
+        <span id="beefQtyDisplay">(현재 0g)</span>
+      </div>
+
+      <button class="add-btn" onclick="addSelectedItem('beef')">추가하기</button>
+    </div>
+  </div>
+
+  <!-- 간편식 -->
+  <div id="marinatedSection" class="meat-section" style="display:none;">
+    <div class="meat-block">
+      <select id="marinatedSelect" onchange="setDefaultQty('marinatedSelect','marinatedQty')">
+        <option value="">-- 양념육을 선택하세요 --</option>
+        <option value="한우 사골곰탕">한우 사골곰탕 (6,000원)</option>
+        <option value="한우 고기듬뿍 사골곰탕">한우 고기듬뿍 사골곰탕 (10,000원)</option>
+        <option value="고추장 순살 닭갈비 700g" disabled>고추장 순살 닭갈비 700g (9,900원) - 품절</option>
+        <option value="한돈 고추장 불고기 800g" disabled>한돈 고추장 불고기 800g (8,900원) - 품절</option>
+        <option value="한돈 생 양념목살 900g" disabled>한돈 생 양념목살 900g (14,800원) - 품절</option>
+        <option value="한우 1++ 찹스테이크 360g" disabled>한우 1++ 찹스테이크 360g (16,800원) - 품절</option>
+        <option value="너를 꽁 찜닭  800g" disabled>너를 꽁 찜닭 800g (10,800원) - 품절</option>
+      </select>
+
+      <div class="qty-row">
+        <button onclick="changeQuantity('marinatedQty', -1, 'marinated')">－</button>
+        <input type="number" id="marinatedQty" value="0" readonly>
+        <button onclick="changeQuantity('marinatedQty', 1, 'marinated')">＋</button>
+        <span id="marinatedQtyDisplay">(현재 0개)</span>
+      </div>
+
+      <button class="add-btn" onclick="addSelectedItem('marinated')">추가하기</button>
+    </div>
+  </div>
+  
+  <hr>
+
+  <!-- 선택한 상품 -->
+  <div id="selectedItems">
+    <h2>🛒 선택한 상품</h2>
+    <div id="itemsList"></div>
+    <div id="totalWeight">총 중량: 0g</div>
+    <div id="totalPrice">총 금액: 0원</div>
+  </div>
+
+  <hr>
+
+  <!-- 요청사항 -->
+  <div id="requestSection">
+    <h2>📝 요청사항</h2>
+    <textarea id="request" placeholder="추가 요청사항을 입력하세요" rows="4"></textarea>
+  </div>
+
+  <hr>
+
+  <!-- 배송지 저장/불러오기 -->
+  <div class="button-group">
+    <button type="button" onclick="saveAddress()">📥 배송지 저장</button>
+    <button type="button" onclick="loadAddress()">📤 배송지 불러오기</button>
+  </div>
+
+  <!-- 배송지 입력 -->
+  <div id="addressSection">
+    <h2>📦 배송지 입력</h2>
+    <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" onkeyup="formatPhone(this)"> <span class="important">*</span>
+    <input type="text" id="name" placeholder="이름"> <span class="important">*</span>
+    <input type="text" id="address" placeholder="주소"> <span class="important">*</span>
+    <input type="text" id="doorcode" placeholder="공동현관 비밀번호"> <span class="important">*</span>
+    <textarea id="deliveryRequest" placeholder="배송 요청사항 (선택)" rows="3"></textarea>
+  </div>
+
+  <hr>
+
+  <!-- 결제 방법 -->
+  <div id="paymentSection">
+    <h2>💳 결제 방법</h2>
+
+    <div class="button-group" style="margin-bottom: 20px;">
+      <button id="cardPayButton" type="button" onclick="payByCard()">💳 카드 결제</button>
+      <button id="accountPayButton" type="button" onclick="showAccountFields()">🏦 계좌이체</button>
+    </div>
+
+    <!-- 계좌이체 입력칸 (처음엔 숨김) -->
+    <div id="accountFields" style="display: none; margin-top: 10px;">
+      <input type="text" id="depositorName" placeholder="입금자명 (필수)">
+      <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
+      <button id="accountConfirmButton" type="button" onclick="confirmAccountPayment()" style="
+  width: 100%;
+  height: 45px;
+  font-size: 18px;
+  background-color: #d2a56e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+">✅ 확인</button>
+
+    </div>
+
+    <div id="consentSection" style="margin-top: 20px; display: block;">
+      <label style="font-size: 14px;">
+        <input type="checkbox" id="privacyConsent">
+        <b>[필수]</b> 개인정보 수집 및 이용에 동의합니다. (이름, 연락처, 주소, 공동현관 비밀번호 수집 / 배송 완료 후 30일 이내 파기)
+      </label>
+      <br>
+      <label style="font-size: 14px; margin-top: 10px; display: block;">
+        <input type="checkbox" id="refundConsent">
+        <b>[필수]</b> 환불 및 교환 정책에 동의합니다. <br>
+        - <u>서비스 제공 기간</u>: 결제일로부터 1~3일 이내 배송됩니다.<br>
+        - <u>취소 및 환불</u>: 포장 준비 전까지 주문 취소 및 환불이 가능합니다.<br>
+        - <u>교환 및 환불</u>: 제품 하자 시, 수령 후 24시간 이내 문의 시 교환 또는 환불해드립니다.<br>
+        - 문의: 카카오톡 또는 매장 (031-500-8876)
+      </label>
+    </div>
+    <input type="hidden" id="paymentMethod">
+  </div>
+
+  <hr>
+
+  <!-- 총 결제 금액 -->
+  <div id="finalSection">
+    <h2>🧾 총 결제 금액</h2>
+    <div id="finalAmount">0원</div>
+  </div>
 </div>
 
-<!-- 🍖 양념육 선택 -->
-<h2>🍖 양념육 선택</h2>
-<div class="meat-block">
-  <select id="marinatedSelect" onchange="setDefaultQty('marinatedSelect','marinatedQty')">
-  <option value="">-- 양념육을 선택하세요 --</option>
-  <option value="한우 사골곰탕">한우 사골곰탕 (6,000원)</option>
-  <option value="한우 고기듬뿍 사골곰탕">한우 고기듬뿍 사골곰탕 (10,000원)</option>
-  <option value="고추장 순살 닭갈비 700g" disabled>고추장 순살 닭갈비 700g (9,900원) - 품절</option>
-  <option value="한돈 고추장 불고기 800g" disabled>한돈 고추장 불고기 800g (8,900원) - 품절</option>
-  <option value="한돈 생 양념목살 900g" disabled>한돈 생 양념목살 900g (14,800원) - 품절</option>
-  <option value="한우 1++ 찹스테이크 360g" disabled>한우 1++ 찹스테이크 360g (16,800원) - 품절</option>
-  <option value="너를 꽁 찜닭  800g" disabled>너를 꽁 찜닭 고기만 800g (10,800원) - 품절</option>
-</select>
-
-
-  <div class="qty-row">
-    <button onclick="changeQuantity('marinatedQty', -1, 'marinated')">➖</button>
-<input type="number" id="marinatedQty" value="0" readonly>
-<button onclick="changeQuantity('marinatedQty', 1, 'marinated')">➕</button>
-<span id="marinatedQtyDisplay">(현재 0개)</span>
-
-</div>
-<button class="add-btn" onclick="addSelectedItem('marinated')">추가하기</button>
-</div>
-<hr>
-
-<!-- 선택한 상품 -->
-<div id="selectedItems">
-  <h2>🛒 선택한 상품</h2>
-  <div id="itemsList"></div>
-  <div id="totalWeight">총 중량: 0g</div>
-  <div id="totalPrice">총 금액: 0원</div>
-</div>
-
-<hr>
-
-<!-- 요청사항 -->
-<div id="requestSection">
-  <h2>📝 요청사항</h2>
-  <textarea id="request" placeholder="추가 요청사항을 입력하세요" rows="4"></textarea>
-</div>
-
-<hr>
-
-<!-- 배송지 저장/불러오기 -->
-<div class="button-group">
-  <button type="button" onclick="saveAddress()">📥 배송지 저장</button>
-  <button type="button" onclick="loadAddress()">📤 배송지 불러오기</button>
-</div>
-
-<!-- 배송지 입력 -->
-<div id="addressSection">
-  <h2>📦 배송지 입력</h2>
-  <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)"> <span class="important">*</span>
-  <input type="text" id="name" placeholder="이름"> <span class="important">*</span>
-  <input type="text" id="address" placeholder="주소"> <span class="important">*</span>
-  <input type="text" id="doorcode" placeholder="공동현관 비밀번호"> <span class="important">*</span>
-  <textarea id="deliveryRequest" placeholder="배송 요청사항 (선택)" rows="3"></textarea>
-</div>
-
-<hr>
-
-<!-- 결제 방법 -->
-<div id="paymentSection">
-  <h2>💳 결제 방법</h2>
-
-<div class="button-group" style="margin-bottom: 20px;">
-  <button id="cardPayButton" type="button" onclick="payByCard()">💳 카드 결제</button>
-  <button id="accountPayButton" type="button" onclick="showAccountFields()">🏦 계좌이체</button>
-</div>
-
-<!-- 계좌이체 입력칸 (처음엔 숨김) -->
-<div id="accountFields" style="display: none; margin-top: 10px;">
-  <input type="text" id="depositorName" placeholder="입금자명 (필수)">
-  <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
-  <button id="accountConfirmButton" type="button" onclick="confirmAccountPayment()">✅ 확인</button>
-</div>
-
-<div id="consentSection" style="margin-top: 20px; display: block;">
-  <label style="font-size: 14px;">
-    <input type="checkbox" id="privacyConsent">
-    <b>[필수]</b> 개인정보 수집 및 이용에 동의합니다. (이름, 연락처, 주소, 공동현관 비밀번호 수집 / 배송 완료 후 30일 이내 파기)
-  </label>
-  <br>
-  <label style="font-size: 14px; margin-top: 10px; display: block;">
-    <input type="checkbox" id="refundConsent">
-    <b>[필수]</b> 환불 및 교환 정책에 동의합니다. <br>
-- <u>서비스 제공 기간</u>: 결제일로부터 1~3일 이내 배송됩니다.<br>
-- <u>취소 및 환불</u>: 포장 준비 전까지 주문 취소 및 환불이 가능합니다.<br>
-- <u>교환 및 환불</u>: 제품 하자 시, 수령 후 24시간 이내 문의 시 교환 또는 환불해드립니다.<br>
-- 문의: 카카오톡 또는 매장 (031-500-8876)
-  </label>
-</div>
-<input type="hidden" id="paymentMethod">
-
-<hr>
-
-<!-- 총 결제 금액 -->
-<div id="finalSection">
-  <h2>🧾 총 결제 금액</h2>
-  <div id="finalAmount">0원</div>
-
-</div>
 <footer style="margin-top: 50px; font-size: 12px; color: #666; text-align: center; line-height: 1.6;">
   <div>상호명: 착한한우 | 대표자명: 김태종 | 사업자등록번호: 154-71-00398</div>
   <div>사업장주소: (14922) 경기 시흥시 은계남로 11, 상가2동 106호(후문상가) 착한한우</div>
@@ -331,8 +403,9 @@
     <a href="/privacy" style="color: #666; text-decoration: underline;">개인정보처리방침</a>
   </div>
 </footer>
+
 <script>
-// 🔥 돼지고기, 소고기, 양념육 가격표
+// 먼저 전역 변수와 함수들을 선언해요
 const porkList = {
   "삼겹살": 2967, "오겹살": 3134, "목살": 2634, "앞다리살": 1650, "찌개용": 1650,
   "등갈비": 2967, "갈빗대벌집삼겹살": 3300, "생 대패삼겹살": 2967, "돈 등심": 1650,
@@ -343,76 +416,51 @@ const beefList = {
   "한우 꽃등심": 16800, "한우 채끝등심": 18000, "한우 안심": 18800, "한우 치마살": 21800,
   "한우 살치살": 21800, "한우 꽃갈비살": 21800, "한우 부채살": 18000, "한우 업진살": 18000,
   "한우 갈비살": 16800, "한우 제비추리": 18000, "한우 안창살": 29800, "한우 토시살": 21800,
-  "한우 양지 국거리": 7500, "한우 목심 양지": 6000, "한우 사태": 5000,
-  "한우 우둔살": 7000, "한우 다짐육": 7000, "한우 육회": 7500, "한우 이유식용 안심": 1880, "한우 이유식용 우둔살": 700
+  "한우 양지 국거리": 7500, "한우 목심 양지": 5000, "한우 사태": 5000,
+  "한우 우둔살": 7000, "한우 다짐육": 7000, "한우 육회": 7500, "한우 이유식용 안심": 18800, "한우 이유식용 우둔살": 7000
 };
 const marinatedList = {
   "한우 사골곰탕": 6000,
   "한우 고기듬뿍 사골곰탕": 10000,
-  "고추장 순살 닭갈비": 9900,
-  "한돈 고추장 불고기": 8900,
-  "한돈 생 양념목살": 14800,
-  "한우 1++ 찹스테이크": 16800,
-  "너를 꽁 찜닭": 10800
+  "고추장 순살 닭갈비 700g": 9900,
+  "한돈 고추장 불고기 800g": 8900,
+  "한돈 생 양념목살 900g": 14800,
+  "한우 1++ 찹스테이크 360g": 16800,
+  "너를 꽁 찜닭 800g": 10800
 };
-
 let selectedItems = [];
 
-function addSelectedItem(type) {
-  let select, qtyInput, priceList;
-
-  if (type === 'pork') {
-    select = document.getElementById('porkSelect');
-    qtyInput = document.getElementById('porkQty');
-    priceList = porkList;
-  } else if (type === 'beef') {
-    select = document.getElementById('beefSelect');
-    qtyInput = document.getElementById('beefQty');
-    priceList = beefList;
-  } else if (type === 'marinated') {
-    select = document.getElementById('marinatedSelect');
-    qtyInput = document.getElementById('marinatedQty');
-    priceList = marinatedList;
-  }
-
-  const meat = select.value;
-  const quantity = parseInt(qtyInput.value);
-  if (!meat || quantity <= 0) {
-    alert("부위와 수량을 정확히 선택해주세요.");
-    return;
-  }
-
-  const isBabyMeat = (type === 'beef') && (meat === '이유식용 안심' || meat === '이유식용 우둔살');
-  const weight = type === 'marinated' ? quantity : quantity * (isBabyMeat ? 10 : 100);
-
-  const pricePerUnit = priceList[meat];
-  const existing = selectedItems.find(item => item.meat === meat);
-
-  if (existing) {
-    existing.weight += weight;
-  } else {
-    selectedItems.push({ meat, weight, pricePerUnit, type });
-  }
-
-  qtyInput.value = 0;
-  select.value = "";
-  updateQtyDisplay(type);
-  updateList();
+// 탭 변경 함수
+function changeTab(type) {
+  // 모든 탭 섹션 숨기기
+  document.querySelectorAll('.meat-section').forEach(section => {
+    section.style.display = 'none';
+  });
+  
+  // 모든 탭 버튼 비활성화
+  document.querySelectorAll('.tabs button').forEach(button => {
+    button.classList.remove('active');
+  });
+  
+  // 선택한 탭 표시 및 버튼 활성화
+  document.getElementById(type + 'Section').style.display = 'block';
+  document.getElementById(type + 'Tab').classList.add('active');
 }
 
-function changeQuantity(id, delta, type) {
-  const input = document.getElementById(id);
-  const display = document.getElementById(id + 'Display');
-  let current = parseInt(input.value) || 0;
-  let next = Math.max(0, current + delta);
-  input.value = next;
-
-  updateQtyDisplay(type);
+function setDefaultQty(selectId, qtyId) {
+  const selected = document.getElementById(selectId).value;
+  if (selected) {
+    if (selectId === 'marinatedSelect') {
+      document.getElementById(qtyId).value = 1;
+    } else {
+      document.getElementById(qtyId).value = 100;
+    }
+    updateQtyDisplay(selectId.replace('Select', ''));
+  }
 }
 
 function updateQtyDisplay(type) {
   let select, qtyInput, display;
-
   if (type === 'pork') {
     select = document.getElementById('porkSelect');
     qtyInput = document.getElementById('porkQty');
@@ -426,27 +474,85 @@ function updateQtyDisplay(type) {
     qtyInput = document.getElementById('marinatedQty');
     display = document.getElementById('marinatedQtyDisplay');
   }
-
   const meat = select.value;
   const quantity = parseInt(qtyInput.value) || 0;
   const isBabyMeat = (type === 'beef') && (meat === '이유식용 안심' || meat === '이유식용 우둔살');
   const unit = type === 'marinated' ? '개' : 'g';
-  const grams = type === 'marinated' ? quantity : quantity * (isBabyMeat ? 10 : 100);
-
+  const grams = type === 'marinated' ? quantity : quantity * (isBabyMeat ? 10 : 1);
   if (display) {
     display.textContent = `(현재 ${grams}${unit})`;
   }
 }
 
-// 🔥 상품 목록 업데이트
+function changeQuantity(id, delta, type) {
+  const input = document.getElementById(id);
+  const select = document.getElementById(type + 'Select');
+  const current = parseInt(input.value) || 0;
+  let step = 100;
+  let max = 5000;
+
+  // 🔥 이유식용이면 10g 단위로 변경
+  const selectedMeat = select.value;
+  if (type === 'beef' && (selectedMeat === '한우 이유식용 안심' || selectedMeat === '한우 이유식용 우둔살')) {
+    step = 10;
+    max = 600;
+  } else if (type === 'marinated') {
+    step = 1; // 마리네이티드 제품은 개수 단위
+    max = 20;
+  }
+
+  const updated = Math.min(max, Math.max(0, current + delta * step));
+  input.value = updated;
+
+  updateQtyDisplay(type);
+
+  
+  input.value = next;
+  updateQtyDisplay(type);
+}
+
+function addSelectedItem(type) {
+  let select, qtyInput, priceList;
+  if (type === 'pork') {
+    select = document.getElementById('porkSelect');
+    qtyInput = document.getElementById('porkQty');
+    priceList = porkList;
+  } else if (type === 'beef') {
+    select = document.getElementById('beefSelect');
+    qtyInput = document.getElementById('beefQty');
+    priceList = beefList;
+  } else if (type === 'marinated') {
+    select = document.getElementById('marinatedSelect');
+    qtyInput = document.getElementById('marinatedQty');
+    priceList = marinatedList;
+  }
+  const meat = select.value;
+  const quantity = parseInt(qtyInput.value);
+  if (!meat || quantity <= 0) {
+    alert("부위와 수량을 정확히 선택해주세요.");
+    return;
+  }
+  const isBabyMeat = (type === 'beef') && (meat === '이유식용 안심' || meat === '이유식용 우둔살');
+  const weight = quantity;
+  const pricePerUnit = priceList[meat];
+  const existing = selectedItems.find(item => item.meat === meat);
+  if (existing) {
+    existing.weight += weight;
+  } else {
+    selectedItems.push({ meat, weight, pricePerUnit, type });
+  }
+  qtyInput.value = 0;
+  select.value = "";
+  updateQtyDisplay(type);
+  updateList();
+}
+
 function updateList() {
   const itemsList = document.getElementById('itemsList');
   itemsList.innerHTML = '';
-
   let totalWeight = 0;
   let totalCount = 0;
   let totalPrice = 0;
-
   selectedItems.forEach((item, index) => {
     let itemPrice = 0;
     if (item.type === 'marinated') {
@@ -456,10 +562,8 @@ function updateList() {
       itemPrice = Math.floor(item.weight * item.pricePerUnit / 100);
       totalWeight += item.weight;
     }
-
     const formattedWeight = item.weight.toLocaleString() + (item.type === 'marinated' ? '개' : 'g');
     const formattedPrice = itemPrice.toLocaleString();
-
     const div = document.createElement('div');
     div.className = 'item';
     div.innerHTML = `
@@ -470,25 +574,19 @@ function updateList() {
       </div>
     `;
     itemsList.appendChild(div);
-
     totalPrice += itemPrice;
   });
-
-  const roundedPrice = Math.floor(totalPrice / 100) * 100;
-
+  const roundedPrice = Math.floor(totalPrice / 10) * 10;
   document.getElementById('totalWeight').textContent = `총 중량: ${totalWeight.toLocaleString()}g / 총 수량: ${totalCount.toLocaleString()}개`;
   document.getElementById('totalPrice').textContent = `총 금액: ${roundedPrice.toLocaleString()}원`;
   document.getElementById('finalAmount').textContent = `${roundedPrice.toLocaleString()}원`;
-
   checkSubmitEnabled();
 }
 
-// 🔥 수정/삭제
 function editItem(index) {
   const item = selectedItems[index];
   const message = item.type === 'marinated' ? "새 수량 (개 단위)" : "새 중량 (10g 단위)";
   const newWeight = prompt(message, item.weight);
-
   if (newWeight !== null) {
     const parsed = parseInt(newWeight);
     if (!isNaN(parsed)) {
@@ -503,32 +601,12 @@ function editItem(index) {
     }
   }
 }
+
 function removeItem(index) {
   selectedItems.splice(index, 1);
   updateList();
 }
 
-// 🔥 결제 방법 변경
-function togglePaymentFields() {
-  const method = document.getElementById('paymentMethod').value;
-  const accountFields = document.getElementById('accountFields');
-  const consentSection = document.getElementById('consentSection');
-
-  if (method === 'account') {
-    accountFields.style.display = 'block';    // 입금자명/현금영수증칸 보여주기
-    consentSection.style.display = 'block';   // 개인정보/환불정책 보여주기
-  } else if (method === 'card') {
-    accountFields.style.display = 'none';     // 카드면 입금자명/현금영수증 숨김
-    consentSection.style.display = 'block';   // 개인정보/환불정책 보여주기
-  } else {
-    accountFields.style.display = 'none';     // 아무것도 선택 안했으면
-    consentSection.style.display = 'none';    // 개인정보/환불정책 숨기기
-  }
-
-  checkSubmitEnabled();  // 🔥 버튼 활성화 다시 검사
-}
-
-// 🔥 배송지 저장/불러오기
 function saveAddress() {
   const info = {
     contact: document.getElementById('contact').value,
@@ -540,6 +618,7 @@ function saveAddress() {
   localStorage.setItem('shippingInfo', JSON.stringify(info));
   alert('배송지가 저장되었습니다!');
 }
+
 function loadAddress() {
   const saved = localStorage.getItem('shippingInfo');
   if (saved) {
@@ -555,46 +634,34 @@ function loadAddress() {
   }
 }
 
-// 🔥 연락처 자동 하이픈
-document.getElementById('contact').addEventListener('input', function(e) {
-  let num = e.target.value.replace(/\D/g, '');
-  if (num.length < 4) e.target.value = num;
-  else if (num.length < 8) e.target.value = `${num.slice(0, 3)}-${num.slice(3)}`;
-  else e.target.value = `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7, 11)}`;
-});
-
 function payByCard() {
   document.getElementById('paymentMethod').value = 'card';
   if (!validateBeforePayment()) return;
-
   const name = document.getElementById('name').value;
   const amount = Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, ''));
-
   // 주문서 정보 설정
   document.querySelector('input[name="P_UNAME"]').value = name;
   document.querySelector('input[name="P_AMT"]').value = amount;
   document.querySelector('input[name="P_GOODS"]').value = '착한한우 고기 세트';
   document.querySelector('input[name="P_OID"]').value = 'order_' + Date.now();
-
   // 서버에 주문 정보 저장
   saveOrderToServer('card');
-
   // 결제창 띄우기
   document.getElementById('paymentForm').submit();
 }
 
-
-function payByAccount() {
+function showAccountFields() {
   document.getElementById('paymentMethod').value = 'account';
-  accountFields.style.display = 'block'; // 계좌이체 누르면 입금자명/현금영수증 보여주기
-
-  if (!validateBeforePayment(true)) return; // 계좌이체일 때는 입금자명 검사
-
-  if (confirm('계좌이체를 선택하셨습니다.\n주문을 진행할까요?')) {
-    saveOrderToServer('account');
-    alert('계좌이체 주문이 완료되었습니다!\n지정된 계좌로 송금 부탁드립니다.');
-  }
+  document.getElementById('accountFields').style.display = 'block';
 }
+
+function confirmAccountPayment() {
+  document.getElementById('paymentMethod').value = 'account';  // 혹시 모르니 추가
+  if (!validateBeforePayment(true)) return;   // 🔥 기본 검증 다 하기
+  alert('계좌이체 주문이 완료되었습니다!\n지정된 계좌로 송금 부탁드립니다.');
+  saveOrderToServer('account');
+}
+
 function validateBeforePayment(isAccount = false) {
   if (!selectedItems.length) {
     alert('상품을 선택해주세요!');
@@ -626,114 +693,12 @@ function validateBeforePayment(isAccount = false) {
   return true;
 }
 
-function setDefaultQty(selectId, qtyId) {
-  const selected = document.getElementById(selectId).value;
-  document.getElementById(qtyId).value = selected ? 1 : 0;
-}
-
-function changeQuantity(id, delta, type = null) {
-  const input = document.getElementById(id);
-  const current = parseInt(input.value) || 0;
-  const updated = Math.max(0, current + delta);
-  input.value = updated;
-
-  if (type) updateQtyDisplay(type);  // ⭐ 이제는 작동됨!
-}
-
-function saveOrderToServer(paymentMethod) {
-console.log("🔥 saveOrderToServer 실행됨", paymentMethod);
-  const orderData = {
-    items: selectedItems,
-    totalAmount: document.getElementById('finalAmount').innerText,
-    contact: document.getElementById('contact').value,
-    name: document.getElementById('name').value,
-    address: document.getElementById('address').value,
-    doorcode: document.getElementById('doorcode').value,
-    requestMessage: document.getElementById('request').value,
-    deliveryRequest: document.getElementById('deliveryRequest').value,
-    paymentMethod: paymentMethod,
-    depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
-    cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
-  };
-
-  fetch('/submit-order', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(orderData)
-  })
-  .then(response => response.json())
-  .then(data => {
-  console.log('주문 저장 성공:', data);
-  window.location.href = '/success';  // 이 줄 추가 (주문 완료 후 이동)
-})
-  .catch(error => {
-    console.error('주문 저장 실패:', error);
-  });
-}
-
-function showAccountFields() {
-  document.getElementById('paymentMethod').value = 'account';
-  document.getElementById('accountFields').style.display = 'block';
-}
-
-function confirmAccountPayment() {
-  document.getElementById('paymentMethod').value = 'account';  // 혹시 모르니 추가
-  if (!validateBeforePayment(true)) return;   // 🔥 기본 검증 다 하기
-
-  alert('계좌이체 주문이 완료되었습니다!\n지정된 계좌로 송금 부탁드립니다.');
-  saveOrderToServer('account');
-}
-
-function addSelectedItem(type) {
-  let select, qtyInput, priceList;
-
-  if (type === 'pork') {
-    select = document.getElementById('porkSelect');
-    qtyInput = document.getElementById('porkQty');
-    priceList = porkList;
-  } else if (type === 'beef') {
-    select = document.getElementById('beefSelect');
-    qtyInput = document.getElementById('beefQty');
-    priceList = beefList;
-  } else if (type === 'marinated') {
-    select = document.getElementById('marinatedSelect');
-    qtyInput = document.getElementById('marinatedQty');
-    priceList = marinatedList;
-  }
-
-  const meat = select.value;
-  const quantity = parseInt(qtyInput.value);
-  if (!meat || quantity <= 0) {
-    alert("부위와 수량을 정확히 선택해주세요.");
-    return;
-  }
-
-  const isBabyMeat = (type === 'beef') && (meat === '이유식용 안심' || meat === '이유식용 우둔살');
-  const weight = type === 'marinated' ? quantity : quantity * (isBabyMeat ? 10 : 100);
-
-  const pricePerUnit = priceList[meat];
-  const existing = selectedItems.find(item => item.meat === meat);
-
-  if (existing) {
-    existing.weight += weight;
-  } else {
-    selectedItems.push({ meat, weight, pricePerUnit, type });
-  }
-
-  qtyInput.value = 0;
-  select.value = "";
-  updateList();
-}
-
-// 🔥 버튼 활성화 체크
 function checkSubmitEnabled() {
   const hasItems = selectedItems.length > 0;
   const hasContact = document.getElementById('contact').value.trim() !== '';
   const hasName = document.getElementById('name').value.trim() !== '';
   const hasAddress = document.getElementById('address').value.trim() !== '';
-  const paymentMethod = document.getElementById('paymentMethod').value.trim();  // <-- 오타 고침
+  const paymentMethod = document.getElementById('paymentMethod').value.trim();
   const privacyConsent = document.getElementById('privacyConsent');
   const refundConsent = document.getElementById('refundConsent');
   
@@ -746,57 +711,69 @@ function checkSubmitEnabled() {
     privacyChecked = privacyConsent && privacyConsent.checked;
     refundChecked = refundConsent && refundConsent.checked;
   }
-
   if (paymentMethod === 'account') {
     const depositorName = document.getElementById('depositorName').value.trim();
     depositorChecked = depositorName !== '';
   }
-
 }
 
-function checkAccountConfirmEnabled() {
-  const depositorName = document.getElementById('depositorName').value.trim();
-  const hasItems = selectedItems.length > 0;
-  const hasContact = document.getElementById('contact').value.trim() !== '';
-  const hasName = document.getElementById('name').value.trim() !== '';
-  const hasAddress = document.getElementById('address').value.trim() !== '';
-  const privacyChecked = document.getElementById('privacyConsent').checked;
-  const refundChecked = document.getElementById('refundConsent').checked;
-
-  const accountConfirmButton = document.getElementById('accountConfirmButton');
-  const allOk = hasItems && hasContact && hasName && hasAddress && depositorName && privacyChecked && refundChecked;
-
-  accountConfirmButton.disabled = !allOk;
+function saveOrderToServer(paymentMethod) {
+  console.log("🔥 saveOrderToServer 실행됨", paymentMethod);
+    const orderData = {
+      items: selectedItems,
+      totalAmount: document.getElementById('finalAmount').innerText,
+      contact: document.getElementById('contact').value,
+      name: document.getElementById('name').value,
+      address: document.getElementById('address').value,
+      doorcode: document.getElementById('doorcode').value,
+      requestMessage: document.getElementById('request').value,
+      deliveryRequest: document.getElementById('deliveryRequest').value,
+      paymentMethod: paymentMethod,
+      depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
+      cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
+    };
+    fetch('/submit-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(orderData)
+    })
+    .then(response => response.json())
+    .then(data => {
+    console.log('주문 저장 성공:', data);
+    window.location.href = '/success';  // 이 줄 추가 (주문 완료 후 이동)
+  })
+    .catch(error => {
+      console.error('주문 저장 실패:', error);
+    });
 }
-// 🔥 입력 변화 감지
-document.getElementById('contact').addEventListener('input', checkSubmitEnabled);
-document.getElementById('name').addEventListener('input', checkSubmitEnabled);
-document.getElementById('address').addEventListener('input', checkSubmitEnabled);
-document.getElementById('paymentMethod').addEventListener('change', checkSubmitEnabled);
-document.getElementById('privacyConsent').addEventListener('change', checkSubmitEnabled);
-document.getElementById('refundConsent').addEventListener('change', checkSubmitEnabled);
-document.getElementById('depositorName').addEventListener('input', checkSubmitEnabled);
 
-document.getElementById('depositorName').addEventListener('input', checkAccountConfirmEnabled);
-document.getElementById('contact').addEventListener('input', checkAccountConfirmEnabled);
-document.getElementById('name').addEventListener('input', checkAccountConfirmEnabled);
-document.getElementById('address').addEventListener('input', checkAccountConfirmEnabled);
-document.getElementById('privacyConsent').addEventListener('change', checkAccountConfirmEnabled);
-document.getElementById('refundConsent').addEventListener('change', checkAccountConfirmEnabled);
-
-document.getElementById('porkSelect').addEventListener('change', () => {
-  document.getElementById('porkQty').value = 1;
-  updateQtyDisplay('pork');
+// DOMContentLoaded 이벤트 리스너는 유지하되, 안쪽 내용을 줄여요
+document.addEventListener('DOMContentLoaded', function () {
+  // 페이지 로딩 시 기본 탭 설정
+  changeTab('pork');
+  
+  // 연락처 포맷팅 이벤트 리스너
+  document.getElementById('contact').addEventListener('input', function(e) {
+    let num = e.target.value.replace(/\D/g, '');
+    if (num.length < 4) {
+      e.target.value = num;
+    } else if (num.length < 8) {
+      e.target.value = num.slice(0, 3) + '-' + num.slice(3);
+    } else {
+      e.target.value = num.slice(0, 3) + '-' + num.slice(3, 7) + '-' + num.slice(7, 11);
+    }
+  });
+  
+  // 다른 이벤트 리스너들 추가
+  document.getElementById('contact').addEventListener('input', checkSubmitEnabled);
+  document.getElementById('name').addEventListener('input', checkSubmitEnabled);
+  document.getElementById('address').addEventListener('input', checkSubmitEnabled);
+  document.getElementById('privacyConsent').addEventListener('change', checkSubmitEnabled);
+  document.getElementById('refundConsent').addEventListener('change', checkSubmitEnabled);
+  document.getElementById('depositorName').addEventListener('input', checkSubmitEnabled);
 });
-document.getElementById('beefSelect').addEventListener('change', () => {
-  document.getElementById('beefQty').value = 1;
-  updateQtyDisplay('beef');
-});
-document.getElementById('marinatedSelect').addEventListener('change', () => {
-  document.getElementById('marinatedQty').value = 1;
-  updateQtyDisplay('marinated');
-});
-
 </script>
 <form id="paymentForm" method="POST" action="https://mobile.inicis.com/smart/payment/" target="_blank">
   <input type="hidden" name="P_INI_PAYMENT" value="CARD">
@@ -811,4 +788,3 @@ document.getElementById('marinatedSelect').addEventListener('change', () => {
 </form>
 </body>
 </html>
-
