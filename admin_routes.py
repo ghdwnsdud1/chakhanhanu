@@ -6,6 +6,9 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import pytz, os, io
 import pandas as pd
+from openpyxl.styles import Font, Alignment
+from openpyxl.utils import get_column_letter
+
 
 # ✅ DB 연결
 load_dotenv()
@@ -86,13 +89,47 @@ async def download_orders():
         order["_id"] = str(order["_id"])
         order["배송일자"] = determine_delivery_date(order.get("timestamp", ""), korea)
 
-    df = pd.DataFrame(orders)
+    df = pd.DataFrame([{
+        "이름": order.get("name", "-"),
+        "연락처": order.get("contact", "-"),
+        "주문상품": ', '.join([
+            f"{item['meat']} {item['weight']}{'g' if item['type'] != 'marinated' else '개'}"
+            for item in order.get("items", [])
+        ]),
+        "결제상태": "완료" if order.get("is_paid") else "미완료",
+        "요청사항": order.get("requestMessage", "-")
+    } for order in orders])
+
     output = io.BytesIO()
-    df.to_excel(output, index=False)
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='주문내역')
+        worksheet = writer.sheets['주문내역']
+
+        # 폰트 크기 크게 (13pt)
+        bold_font = Font(name='맑은 고딕', size=13)  # 기본 한글 폰트로 설정
+        wrap_text_align = Alignment(wrap_text=True, vertical='top')
+
+        for idx, row in enumerate(worksheet.iter_rows(min_row=1, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column), start=1):
+            worksheet.row_dimensions[idx].height = None  # 🔥 행 높이 자동
+            for cell in row:
+                 cell.font = bold_font
+                 cell.alignment = wrap_text_align
+
+        # 열 너비 늘리기
+        column_widths = {
+            'A': 14,  # 이름
+            'B': 20,  # 연락처
+            'C': 50,  # 주문상품
+            'D': 12,  # 결제상태
+            'E': 50   # 요청사항
+        }
+        for col_letter, width in column_widths.items():
+            worksheet.column_dimensions[col_letter].width = width
+
     output.seek(0)
 
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=orders.xlsx"}
+    headers={"Content-Disposition": "attachment; filename=chakhanhanu_orders.xlsx"}
     )
