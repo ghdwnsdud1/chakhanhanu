@@ -796,9 +796,9 @@ function saveOrderToServer(paymentMethod, imp_uid = '') {
       deliveryRequest: document.getElementById('deliveryRequest').value,
       paymentMethod: paymentMethod,
       depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
-      cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
+      cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : '',   // ✅ 콤마 추가!
       imp_uid: imp_uid
-    };
+  };
     fetch('/submit-order', {
       method: 'POST',
       headers: {
