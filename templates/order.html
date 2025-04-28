@@ -219,7 +219,7 @@ select {
 }
 
   </style>
-  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+   <script src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
 </head>
 
 <body>
@@ -681,19 +681,39 @@ function loadAddress() {
 }
 
 function payByCard() {
-  document.getElementById('paymentMethod').value = 'card';
   if (!validateBeforePayment()) return;
+
   const name = document.getElementById('name').value;
   const amount = Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, ''));
-  // 주문서 정보 설정
-  document.querySelector('input[name="P_UNAME"]').value = name;
-  document.querySelector('input[name="P_AMT"]').value = amount;
-  document.querySelector('input[name="P_GOODS"]').value = '착한한우 고기 세트';
-  document.querySelector('input[name="P_OID"]').value = 'order_' + Date.now();
-  // 서버에 주문 정보 저장
-  saveOrderToServer('card');
-  // 결제창 띄우기
-  document.getElementById('paymentForm').submit();
+  const contact = document.getElementById('contact').value;
+  const address = document.getElementById('address').value;
+
+  const IMP = window.IMP;
+  IMP.init('imp20083434'); // 여기다가 너 포트원 '가맹점 식별코드' 넣어야 해!! (ex: imp_1234567890)
+
+  IMP.request_pay({
+    pg : 'html5_inicis',  // 이니시스
+    pay_method : 'card',  // 카드결제
+    merchant_uid: 'order_' + Date.now(), // 주문번호 (고유해야 해)
+    name : '착한한우 고기 세트',
+    amount : amount,
+    buyer_name : name,
+    buyer_tel : contact,
+    buyer_addr : address,
+    buyer_postcode : '' // 우편번호 필요없으면 비워둬
+  }, function(rsp) {
+    if (rsp.success) {
+      alert('결제가 성공했습니다!\n결제번호: ' + rsp.imp_uid);
+
+      // 서버로 결제정보 보내기
+      saveOrderToServer('card', rsp.imp_uid);
+      
+      // 성공 후 이동
+      window.location.href = '/success';
+    } else {
+      alert('결제에 실패했습니다: ' + rsp.error_msg);
+    }
+  });
 }
 
 function showAccountFields() {
@@ -763,7 +783,7 @@ function checkSubmitEnabled() {
   }
 }
 
-function saveOrderToServer(paymentMethod) {
+function saveOrderToServer(paymentMethod, imp_uid = '') {
   console.log("🔥 saveOrderToServer 실행됨", paymentMethod);
     const orderData = {
       items: selectedItems,
@@ -777,6 +797,7 @@ function saveOrderToServer(paymentMethod) {
       paymentMethod: paymentMethod,
       depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
       cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : ''
+      imp_uid: imp_uid
     };
     fetch('/submit-order', {
       method: 'POST',
@@ -820,19 +841,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('refundConsent').addEventListener('change', checkSubmitEnabled);
   document.getElementById('depositorName').addEventListener('input', checkSubmitEnabled);
 });
-function payNow() {
-  const orderId = 'ORDER' + Date.now();
-  const amount = 15000; // 주문 금액
-  const buyerName = '홍준영';
-  const productName = '착한한우 1++ 등심';
-
-  document.querySelector('input[name="P_OID"]').value = orderId;
-  document.querySelector('input[name="P_AMT"]').value = amount;
-  document.querySelector('input[name="P_UNAME"]').value = buyerName;
-  document.querySelector('input[name="P_GOODS"]').value = productName;
-
-  document.getElementById('paymentForm').submit();
-}
 </script>
 </body>
 </html>
