@@ -10,6 +10,30 @@ from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 from bson import ObjectId
 from db import orders_collection
+from pydantic import BaseModel
+from typing import List, Optional
+
+# ✅ 주문 데이터 모델
+class Item(BaseModel):
+    meat: str
+    weight: int
+    pricePerUnit: int
+    type: str
+
+class Order(BaseModel):
+    items: List[Item]
+    totalAmount: str
+    contact: str
+    name: str
+    address: str
+    doorcode: Optional[str] = ''
+    requestMessage: Optional[str] = ''
+    deliveryRequest: Optional[str] = ''
+    paymentMethod: str  # 🔥 이거 중요 (추가)
+    depositorName: Optional[str] = ''
+    cashReceipt: Optional[str] = ''
+    imp_uid: Optional[str] = ''
+    isPaid: bool
 
 # ✅ DB 연결
 load_dotenv()
@@ -78,7 +102,7 @@ def determine_delivery_date(timestamp_str):
 @router.get("/get-orders")
 async def get_orders():
     orders = []
-    for order in orders_collection.find().sort("timestamp", -1):
+    for order in orders_collection.find({}).sort("timestamp", -1):
         order["_id"] = str(order["_id"])
 
         # ✅ 여기 추가
@@ -127,9 +151,9 @@ async def download_orders():
             f"{item['meat']} {item['weight']}{'g' if item['type'] != 'marinated' else '개'}"
             for item in order.get("items", [])
         ]),
-        "결제상태": "완료" if order.get("isPaid") else "미완료",  # 🔥 수정
-        "요청사항": order.get("requestMessage", "-")
-    } for order in orders])
+        "결제상태": "완료" if order.get("isPaid", False) else "미완료",
+        "요청사항": order.get("requestMessage", "-"),
+    } for order in orders]),
 
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:

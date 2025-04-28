@@ -30,6 +30,8 @@ class Order(BaseModel):
     paymentMethod: str
     depositorName: str = ""
     cashReceipt: str = ""
+    timestamp: str = ""
+    imp_uid: str = ""
 
 # ✅ 주문 저장
 @router.post("/submit-order")
@@ -39,12 +41,26 @@ async def submit_order(order: Order):
     now_korea = datetime.now(korea).strftime("%Y-%m-%d %H:%M:%S")
 
     order_dict = order.dict()
+
+    # 기본값: 무조건 미결제
+    order_dict["isPaid"] = False
+
+    imp_uid = order_dict.get("imp_uid", "")
+
+    if order_dict.get("paymentMethod") == "card" and imp_uid:
+        # 카드결제일 경우, 결제정보 확인
+        access_token = get_portone_token()
+        payment_info = verify_payment(imp_uid, access_token)
+        if payment_info.get("status") == "paid":
+            order_dict["isPaid"] = True
+
     order_dict["timestamp"] = now_korea
-    order_dict["is_paid"] = False
 
-    result = orders_collection.insert_one(order_dict)
+    print("🔥 최종 저장될 order_dict:", order_dict)
 
-    return {"status": "success", "id": str(result.inserted_id)}
+    orders_collection.insert_one(order_dict)
+
+    return {"success": True}
 
 # ✅ 주문 목록 가져오기
 @router.get("/get-orders")
@@ -59,7 +75,7 @@ async def get_orders():
 async def mark_paid(order_id: str):
     result = orders_collection.update_one(
         {"_id": ObjectId(order_id)},
-        {"$set": {"is_paid": True}}
+        {"$set": {"isPaid": True}}
     )
     return {"message": "결제 완료 처리됨" if result.modified_count else "실패"}
 

@@ -395,8 +395,7 @@ select {
     <div id="accountFields" style="display: none; margin-top: 10px;">
       <input type="text" id="depositorName" placeholder="입금자명 (필수)">
       <input type="text" id="cashReceipt" placeholder="현금영수증 번호 (선택)">
-      <button id="accountConfirmButton" type="button" onclick="confirmAccountPayment()" style="
-  <button id="accountConfirmButton" type="button" class="primary-button" onclick="confirmAccountPayment()">✅ 확인</button>
+      <button id="accountConfirmButton" type="button" class="primary-button" onclick="confirmAccountPayment()">✅ 확인</button>
 
     </div>
 
@@ -549,11 +548,6 @@ function changeQuantity(id, delta, type) {
 
   const updated = Math.min(max, Math.max(0, current + delta * step));
   input.value = updated;
-
-  updateQtyDisplay(type);
-
-  
-  input.value = next;
   updateQtyDisplay(type);
 }
 
@@ -722,10 +716,13 @@ function showAccountFields() {
 }
 
 function confirmAccountPayment() {
-  document.getElementById('paymentMethod').value = 'account';  // 혹시 모르니 추가
-  if (!validateBeforePayment(true)) return;   // 🔥 기본 검증 다 하기
+  document.getElementById('paymentMethod').value = 'account';
+  if (!validateBeforePayment(true)) return;
   alert('계좌이체 주문이 완료되었습니다!\n지정된 계좌로 송금 부탁드립니다.');
-  saveOrderToServer('account');
+  
+  saveOrderToServer('account');  // 서버에 저장 시도
+
+  // 🔥 저장 성공하면 이동해야 해. 바로 이동시키지 말고!
 }
 
 function validateBeforePayment(isAccount = false) {
@@ -797,23 +794,33 @@ function saveOrderToServer(paymentMethod, imp_uid = '') {
     depositorName: document.getElementById('depositorName')?.value || '',
     cashReceipt: document.getElementById('cashReceipt')?.value || '',
     imp_uid: imp_uid,
-    isPaid: paymentMethod === 'card' or 'account'
+    isPaid: paymentMethod === 'card',
   };
 
-  fetch('/submit-order', {
+   fetch('/submit-order', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(orderData)
   })
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('서버 오류 발생');
+    }
+    return response.json();
+  })
   .then(data => {
-    console.log('주문 저장 성공:', data);
-    window.location.href = '/success';
+    console.log('✅ 주문 저장 성공:', data);
+    if (data.success) {
+      window.location.href = '/success';  // 🔥 성공하면 여기서 무조건 이동
+    } else {
+      alert('주문 저장 실패. 다시 시도해주세요.');
+    }
   })
   .catch(error => {
-    console.error('주문 저장 실패:', error);
+    console.error('❌ 주문 저장 실패:', error);
+    alert('서버 오류로 주문 저장에 실패했습니다.');
   });
 }
 
