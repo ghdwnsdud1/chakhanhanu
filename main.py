@@ -22,15 +22,7 @@ app.include_router(misc_router)
 
 from datetime import datetime, timedelta
 import asyncio
-from pymongo import MongoClient
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True)
-db = client["meatshop"]
-orders_collection = db["orders"]
+from db import orders_collection
 
 # ⭐ FastAPI 앱이 실행되면 자동으로 이 함수가 시작돼!
 @app.on_event("startup")

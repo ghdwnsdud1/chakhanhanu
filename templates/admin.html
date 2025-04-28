@@ -77,6 +77,7 @@
   </div>
 
   <div id="orderContainer"></div>
+
   <div style="text-align: center; margin-top: 20px;">
     <button onclick="downloadExcel()">📥 엑셀로 저장하기</button>
   </div>
@@ -84,11 +85,13 @@
 </div>
 
 <script>
+// 무게 표시 포맷
 function formatWeight(weight, type) {
   if (type === 'marinated') return `${weight.toLocaleString()}개`;
   return `${weight.toLocaleString()}g`;
 }
 
+// 주문 가져오기
 async function fetchOrders() {
   try {
     const res = await fetch('/get-orders');
@@ -149,9 +152,9 @@ async function fetchOrders() {
                   <td>${order.depositorName || '-'}</td>
                   <td>${order.cashReceipt || '-'}</td>
                   <td>${order.totalAmount || '-'}</td>
-                  <td class="${order.is_paid ? 'paid' : 'unpaid'}">${order.is_paid ? '완료' : '미완료'}</td>
+                  <td class="${order.isPaid ? 'paid' : 'unpaid'}">${order.isPaid ? '완료' : '미완료'}</td>
                   <td>
-                    ${!order.is_paid ? `<button onclick="markAsPaid('${order._id}')">결제완료</button>` : ''}
+                    ${!order.isPaid ? `<button onclick="markAsPaid('${order._id}')">결제완료</button>` : ''}
                     <button class="delete" onclick="deleteOrder('${order._id}')">삭제</button>
                   </td>
                 </tr>
@@ -169,21 +172,35 @@ async function fetchOrders() {
   }
 }
 
+// 섹션 접기
 function toggleSection(id) {
   const el = document.getElementById(id);
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
+// 결제 완료 처리
 async function markAsPaid(orderId) {
   const response = await fetch(`/mark-paid/${orderId}`, { method: 'POST' });
   if (response.ok) {
     alert('결제 완료 처리되었습니다!');
-    fetchOrders();
+
+    // 🔥 직접 결제상태만 바꿔주자
+    const tr = document.querySelector(`tr[data-order-id="${orderId}"]`);
+    if (tr) {
+      const paymentCell = tr.querySelector('td:nth-child(11)');  // 11번째 칸이 결제여부
+      paymentCell.className = 'paid';
+      paymentCell.textContent = '완료';
+
+      const buttonContainer = tr.querySelector('td:nth-child(12)');
+      buttonContainer.innerHTML = `<button class="delete" onclick="deleteOrder('${orderId}')">삭제</button>`;
+    }
   } else {
     alert('처리 실패');
   }
 }
 
+
+// 주문 삭제
 async function deleteOrder(orderId) {
   if (!confirm('정말 삭제할까요?')) return;
   const res = await fetch(`/delete-order/${orderId}`, { method: 'POST' });
@@ -197,12 +214,15 @@ async function deleteOrder(orderId) {
   }
 }
 
+// 엑셀 다운로드
 function downloadExcel() {
   window.location.href = '/download-orders';
 }
 
+// 페이지 로드
 window.onload = fetchOrders;
 document.getElementById('searchInput').addEventListener('input', fetchOrders);
+
 </script>
 </body>
 </html>

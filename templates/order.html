@@ -695,7 +695,7 @@ function payByCard() {
     pg : 'html5_inicis',  // 이니시스
     pay_method : 'card',  // 카드결제
     merchant_uid: 'order_' + Date.now(), // 주문번호 (고유해야 해)
-    name : '착한한우 고기 세트',
+    name : '착한한우 고기 주문',
     amount : amount,
     buyer_name : name,
     buyer_tel : contact,
@@ -784,36 +784,37 @@ function checkSubmitEnabled() {
 }
 
 function saveOrderToServer(paymentMethod, imp_uid = '') {
-  console.log("🔥 saveOrderToServer 실행됨", paymentMethod);
-    const orderData = {
-      items: selectedItems,
-      totalAmount: document.getElementById('finalAmount').innerText,
-      contact: document.getElementById('contact').value,
-      name: document.getElementById('name').value,
-      address: document.getElementById('address').value,
-      doorcode: document.getElementById('doorcode').value,
-      requestMessage: document.getElementById('request').value,
-      deliveryRequest: document.getElementById('deliveryRequest').value,
-      paymentMethod: paymentMethod,
-      depositorName: document.getElementById('depositorName') ? document.getElementById('depositorName').value : '',
-      cashReceipt: document.getElementById('cashReceipt') ? document.getElementById('cashReceipt').value : '',   // ✅ 콤마 추가!
-      imp_uid: imp_uid
+  const orderData = {
+    items: selectedItems,
+    totalAmount: document.getElementById('finalAmount').innerText,
+    contact: document.getElementById('contact').value,
+    name: document.getElementById('name').value,
+    address: document.getElementById('address').value,
+    doorcode: document.getElementById('doorcode')?.value || '',
+    requestMessage: document.getElementById('request')?.value || '',
+    deliveryRequest: document.getElementById('deliveryRequest')?.value || '',
+    paymentMethod: paymentMethod,
+    depositorName: document.getElementById('depositorName')?.value || '',
+    cashReceipt: document.getElementById('cashReceipt')?.value || '',
+    imp_uid: imp_uid,
+    isPaid: paymentMethod === 'card' or 'account'
   };
-    fetch('/submit-order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(orderData)
-    })
-    .then(response => response.json())
-    .then(data => {
-    console.log('주문 저장 성공:', data);
-    window.location.href = '/success';  // 이 줄 추가 (주문 완료 후 이동)
+
+  fetch('/submit-order', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderData)
   })
-    .catch(error => {
-      console.error('주문 저장 실패:', error);
-    });
+  .then(response => response.json())
+  .then(data => {
+    console.log('주문 저장 성공:', data);
+    window.location.href = '/success';
+  })
+  .catch(error => {
+    console.error('주문 저장 실패:', error);
+  });
 }
 
 // DOMContentLoaded 이벤트 리스너는 유지하되, 안쪽 내용을 줄여요

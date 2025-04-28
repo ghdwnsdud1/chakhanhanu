@@ -1,6 +1,7 @@
 # payment_routes.py
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
+import requests
 
 router = APIRouter()
 
@@ -29,3 +30,38 @@ async def payment_notify(request: Request):
     print("🔔 [payment-notify] 결제 서버 알림 수신:", dict(form_data))
     # 서버에서 비동기 결제 정보 수신 → 검증 후 주문 업데이트
     return "OK"
+
+def get_portone_token():
+    url = "https://api.iamport.kr/users/getToken"
+    data = {
+        "imp_key": "8707636126083037",
+        "imp_secret": "b28c8bSZwttod8gCyCspOtQIwUxsuBe7dYWbzHW3dWsjIcwqfVoaLPdgQbn75FvXYrLR49ySZlYklprg"
+    }
+    response = requests.post(url, data=data).json()
+    return response['response']['access_token']
+
+def verify_payment(imp_uid, access_token):
+    url = f"https://api.iamport.kr/payments/{imp_uid}"
+    headers = {
+        "Authorization": access_token
+    }
+    response = requests.get(url, headers=headers).json()
+    return response['response']
+
+@router.post("/submit-order")
+async def submit_order(order: dict):
+    imp_uid = order.get('imp_uid', '')
+
+    # 포트원 결제 검증 요청
+    if imp_uid:
+        access_token = get_portone_token()
+        payment_info = verify_payment(imp_uid, access_token)
+        
+        if payment_info['status'] == 'paid':
+            order['isPaid'] = True
+        else:
+            order['isPaid'] = False
+
+    # 주문 저장
+    orders_collection.insert_one(order)
+    return {"success": True}

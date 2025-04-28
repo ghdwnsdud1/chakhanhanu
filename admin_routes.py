@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi import APIRouter, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from datetime import datetime, timedelta
 from pymongo import MongoClient
@@ -8,7 +8,8 @@ import pytz, os, io
 import pandas as pd
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
-
+from bson import ObjectId
+from db import orders_collection
 
 # ✅ DB 연결
 load_dotenv()
@@ -54,31 +55,61 @@ async def admin_page(request: Request):
     return templates.TemplateResponse("admin.html", {"request": request})
 
 # ✅ 배송일자 분류 함수 (오후 2시 기준)
-def determine_delivery_date(timestamp_str, tz):
+def determine_delivery_date(timestamp_str):
     try:
+        korea = pytz.timezone('Asia/Seoul')
         order_time = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
-        # 이미 timezone이 들어있는 datetime이면 localize하면 안됨!
-        if order_time.tzinfo is None:
-            order_time = tz.localize(order_time)
-        else:
-            order_time = order_time.astimezone(tz)
+        order_time = korea.localize(order_time)  # 한국 시간대 적용
 
         cutoff = order_time.replace(hour=14, minute=0, second=0, microsecond=0)
-        delivery_date = (order_time + timedelta(days=1)).date() if order_time > cutoff else order_time.date()
+
+        if order_time <= cutoff:
+            delivery_date = order_time.date()
+        else:
+            delivery_date = (order_time + timedelta(days=1)).date()
+
         return str(delivery_date)
     except Exception as e:
-        print("❌ 배송일자 분류 실패:", e)
+        print(f"배송일자 계산 실패: {e}")
         return "분류불가"
+
 
 # ✅ 주문 목록 반환 (관리자 페이지용)
 @router.get("/get-orders")
 async def get_orders():
-    orders = list(orders_collection.find())
-    korea = pytz.timezone('Asia/Seoul')
-    for order in orders:
+    orders = []
+    for order in orders_collection.find().sort("timestamp", -1):
         order["_id"] = str(order["_id"])
-        order["배송일자"] = determine_delivery_date(order.get("timestamp", ""), korea)
-    return orders
+
+        # ✅ 여기 추가
+        order["isPaid"] = order.get("isPaid", False)
+
+        # ✅ 배송일자 자동 계산 추가
+        ts = order.get("timestamp")
+        if ts:
+            order["배송일자"] = determine_delivery_date(ts)
+        else:
+            order["배송일자"] = "분류불가"
+
+        orders.append(order)
+    return JSONResponse(content=orders)
+
+# ✅ 결제 완료 처리
+@router.post("/mark-paid/{order_id}")
+async def mark_paid(order_id: str):
+    try:
+        result = orders_collection.update_one(
+            {"_id": ObjectId(order_id)},
+            {"$set": {"isPaid": True,}} 
+        )
+        if result.modified_count == 1:
+            return {"success": True}
+        else:
+            raise HTTPException(status_code=404, detail="Order not found")
+    except Exception as e:
+        print(f"❌ 결제완료 업데이트 실패: {e}")
+        raise HTTPException(status_code=500, detail="Server error")
+
 # ✅ 엑셀 다운로드
 @router.get("/download-orders")
 async def download_orders():
@@ -96,7 +127,7 @@ async def download_orders():
             f"{item['meat']} {item['weight']}{'g' if item['type'] != 'marinated' else '개'}"
             for item in order.get("items", [])
         ]),
-        "결제상태": "완료" if order.get("is_paid") else "미완료",
+        "결제상태": "완료" if order.get("isPaid") else "미완료",  # 🔥 수정
         "요청사항": order.get("requestMessage", "-")
     } for order in orders])
 
@@ -105,23 +136,20 @@ async def download_orders():
         df.to_excel(writer, index=False, sheet_name='주문내역')
         worksheet = writer.sheets['주문내역']
 
-        # 폰트 크기 크게 (13pt)
-        bold_font = Font(name='맑은 고딕', size=13)  # 기본 한글 폰트로 설정
+        bold_font = Font(name='맑은 고딕', size=13)
         wrap_text_align = Alignment(wrap_text=True, vertical='top')
 
         for idx, row in enumerate(worksheet.iter_rows(min_row=1, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column), start=1):
-            worksheet.row_dimensions[idx].height = None  # 🔥 행 높이 자동
             for cell in row:
-                 cell.font = bold_font
-                 cell.alignment = wrap_text_align
+                cell.font = bold_font
+                cell.alignment = wrap_text_align
 
-        # 열 너비 늘리기
         column_widths = {
-            'A': 14,  # 이름
-            'B': 20,  # 연락처
-            'C': 50,  # 주문상품
-            'D': 12,  # 결제상태
-            'E': 50   # 요청사항
+            'A': 14,
+            'B': 20,
+            'C': 50,
+            'D': 12,
+            'E': 50
         }
         for col_letter, width in column_widths.items():
             worksheet.column_dimensions[col_letter].width = width
@@ -131,5 +159,5 @@ async def download_orders():
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    headers={"Content-Disposition": "attachment; filename=chakhanhanu_orders.xlsx"}
+        headers={"Content-Disposition": "attachment; filename=chakhanhanu_orders.xlsx"}
     )
