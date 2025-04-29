@@ -8,20 +8,33 @@
   <style>
     body {
       font-family: sans-serif;
-      display: flex;
-      justify-content: center;
       padding: 20px;
       margin: 0;
       background-color: #fdfdfd;
     }
-    .container {
-      max-width: 1200px;
-      width: 100%;
-    }
-    h1 {
+.container {
+  max-width: 1700px;
+  width: 100%;
+  margin: 0 auto; /* 가운데 정렬 */
+}
+
+h1 {
       text-align: center;
       margin-bottom: 20px;
     }
+
+#searchInput {
+  display: block;
+  margin: 0 auto 20px auto; /* 검색창 가운데 */
+  width: 300px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+  #orderContainer {
+  text-align: left; /* 주문 테이블 왼쪽 정렬 */
+}
+    
     table {
       width: 100%;
       border-collapse: collapse;
@@ -36,6 +49,7 @@
     th {
       background-color: #f2f2f2;
     }
+
     .paid {
       color: green;
       font-weight: bold;
@@ -65,12 +79,14 @@
       text-align: left;
       padding-left: 20px;
     }
+
+
   </style>
 </head>
 <body>
 <div class="container">
 
-  <h1>🐮 착한한우 주문 관리 페이지 🐷</h1>
+  <h1 class="center">🐮 착한한우 주문 관리 페이지 🐷</h1>
 
   <div style="text-align: center; margin-bottom: 20px;">
     <input type="text" id="searchInput" placeholder="이름, 연락처, 주소 검색" style="width: 300px; padding: 8px; font-size: 16px;">
