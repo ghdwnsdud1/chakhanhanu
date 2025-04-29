@@ -7,6 +7,7 @@ import pytz
 import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from payment_routes import get_portone_token, verify_payment
 
 # MongoDB 연결
 load_dotenv()

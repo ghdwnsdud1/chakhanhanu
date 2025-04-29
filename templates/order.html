@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>착한한우 고기 주문서</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="google" content="notranslate">
   <style>
 @font-face {
@@ -97,6 +97,7 @@ select {
       border: none;
       border-radius: 50%;
       cursor: pointer;
+      touch-action: manipulation;
     }
     
     .qty-row input[type="number"] {
@@ -687,7 +688,6 @@ function payByCard() {
 
   IMP.request_pay({
     pg : 'html5_inicis',  // 이니시스
-    pay_method : 'card',  // 카드결제
     merchant_uid: 'order_' + Date.now(), // 주문번호 (고유해야 해)
     name : '착한한우 고기 주문',
     amount : amount,
@@ -700,10 +700,9 @@ function payByCard() {
       alert('결제가 성공했습니다!\n결제번호: ' + rsp.imp_uid);
 
       // 서버로 결제정보 보내기
-      saveOrderToServer('card', rsp.imp_uid);
-      
-      // 성공 후 이동
-      window.location.href = '/success';
+      saveOrderToServer('card', rsp.imp_uid, () => {
+        window.location.href = '/success';
+      });
     } else {
       alert('결제에 실패했습니다: ' + rsp.error_msg);
     }
@@ -797,32 +796,26 @@ function saveOrderToServer(paymentMethod, imp_uid = '') {
     isPaid: paymentMethod === 'card',
   };
 
-   fetch('/submit-order', {
+  fetch('/submit-order', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(orderData)
   })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('서버 오류 발생');
-    }
-    return response.json();
-  })
+  .then(response => response.json())
   .then(data => {
-    console.log('✅ 주문 저장 성공:', data);
     if (data.success) {
-      window.location.href = '/success';  // 🔥 성공하면 여기서 무조건 이동
+      console.log("✅ 주문 저장 성공");
+      window.location.href = '/success';  // ✅ 여기서 바로 이동!
     } else {
-      alert('주문 저장 실패. 다시 시도해주세요.');
+      alert("❌ 주문 저장 실패");
     }
   })
-  .catch(error => {
-    console.error('❌ 주문 저장 실패:', error);
-    alert('서버 오류로 주문 저장에 실패했습니다.');
+  .catch(err => {
+    alert("서버 오류로 주문 저장 실패");
+    console.error(err);
   });
 }
+
 
 // DOMContentLoaded 이벤트 리스너는 유지하되, 안쪽 내용을 줄여요
 document.addEventListener('DOMContentLoaded', function () {
