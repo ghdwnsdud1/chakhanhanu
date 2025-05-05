@@ -33,6 +33,9 @@ async def startup_event():
 def keep_alive():
     return {"status": "ok"}
 
+@app.head("/")
+def head_alive():
+    return
 # ⭐ 1시간마다 실행되는 함수
 async def delete_old_orders():
     while True:
