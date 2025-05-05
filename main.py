@@ -29,6 +29,10 @@ from db import orders_collection
 async def startup_event():
     asyncio.create_task(delete_old_orders())
 
+@app.get("/")
+def keep_alive():
+    return {"status": "ok"}
+
 # ⭐ 1시간마다 실행되는 함수
 async def delete_old_orders():
     while True:
