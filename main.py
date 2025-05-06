@@ -132,8 +132,8 @@ def update_sheet_row(index, name, price, status):
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         
         # Render 환경변수에서 JSON 텍스트 불러오기
-        json_key = os.getenv("GOOGLE_SHEETS_KEY")
-        creds_dict = json.loads(json_key)
+        json_str = os.getenv("GOOGLE_SHEETS_KEY")
+        creds_dict = json.loads(json_str)
 
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
