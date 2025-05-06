@@ -1,6 +1,14 @@
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 # 1. FastAPI 앱 생성
 app = FastAPI()
@@ -8,6 +16,14 @@ app = FastAPI()
 # 2. 미들웨어 등록
 app.add_middleware(SessionMiddleware, secret_key="supersecretkey123")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 개발 단계에서는 * 사용
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 3. 라우터 import 및 등록 (미들웨어 이후!)
 from payment_routes import router as payment_router
@@ -23,6 +39,10 @@ app.include_router(misc_router)
 from datetime import datetime, timedelta
 import asyncio
 from db import orders_collection
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
 
 # ⭐ FastAPI 앱이 실행되면 자동으로 이 함수가 시작돼!
 @app.on_event("startup")
@@ -59,3 +79,55 @@ async def delete_old_orders():
 
         print(f"🧹 3일 지난 주문 {deleted_count}개 삭제 완료!")
         await asyncio.sleep(3600)
+
+@app.get("/admin/products", response_class=HTMLResponse)
+async def admin_products_page(request: Request):
+    return templates.TemplateResponse("admin_products.html", {"request": request})
+
+# 임시 상품 리스트 (Google Sheets 대신)
+products = [
+    {"name": "한우 등심", "price": 29800, "status": "판매중"},
+    {"name": "돼지 목살", "price": 13800, "status": "품절"},
+]
+
+# 상품 리스트를 반환하는 API
+@app.get("/get-products")
+async def get_products():
+    return JSONResponse(content=products)
+
+@app.post("/update-product")
+async def update_product(request: Request):
+    data = await request.json()
+    index = data.get("index")
+    name = data.get("name")
+    price = data.get("price")
+    status = data.get("status")
+
+    if index is not None and 0 <= index < len(products):
+        products[index] = {
+            "name": name,
+            "price": price,
+            "status": status
+        }
+
+        update_sheet_row(index, name, price, status)
+
+        return JSONResponse(content={"message": "상품이 수정되었습니다."})
+    else:
+        return JSONResponse(content={"message": "상품 수정 실패: index 오류"}, status_code=400)
+
+# 시트 연동 준비
+def update_sheet_row(index, name, price, status):
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name('products-459015-657027f8f854.json', scope)
+    client = gspread.authorize(creds)
+
+    # 시트 열기
+    sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1ZdFmBrhvHmJ3wpYrlnWSm1WvZAw3ac6Qg9JuBEvSpwI/edit#gid=0")
+    worksheet = sheet.get_worksheet(0)  # 첫 번째 시트 기준
+
+    # index는 0부터 시작, 시트는 1부터 시작이니까 index + 2 (헤더 한 줄 때문)
+    row = index + 2
+    worksheet.update_cell(row, 1, name)   # A열: 이름
+    worksheet.update_cell(row, 3, price)  # B열: 가격
+    worksheet.update_cell(row, 4, status) # C열: 상태
