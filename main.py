@@ -121,23 +121,24 @@ async def update_product(request: Request):
 # 시트 연동 준비
 def update_sheet_row(index, name, price, status):
     try:
-        # ✅ 환경변수 대신 Secret File 경로에서 읽기
-        with open("/etc/secrets/GOOGLE_SHEETS_KEY") as f:
-            json_key = f.read()
-        if not json_key:
-            print("❌ 환경변수 GOOGLE_SHEETS_KEY 를 못 불러왔어요!")
-            return  # 더 이상 진행하면 안 되니까 종료
+        with open("/etc/secrets/GOOGLE_SHEETS_KEY", "r") as f:
+            json_str = f.read()
 
-        print("🔐 환경변수 불러오기 성공!")
-        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        
-        # Render 환경변수에서 JSON 텍스트 불러오기
-        json_str = os.getenv("GOOGLE_SHEETS_KEY")
+        if not json_str or json_str.strip() == "":
+            print("❌ Secret 파일 내용이 비어있음!")
+            return
+
+        print("🔐 Secret 파일 정상 읽음!")
+
+        # json 파싱
         creds_dict = json.loads(json_str)
 
+        # 구글 시트 인증
+        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
 
+        # 시트 연결
         sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1ZdFmBrhvHmJ3wpYrlnWSm1WvZAw3ac6Qg9JuBEvSpwI")
         worksheet = sheet.get_worksheet(0)
 
@@ -145,6 +146,8 @@ def update_sheet_row(index, name, price, status):
         worksheet.update_cell(row, 1, name)
         worksheet.update_cell(row, 3, price)
         worksheet.update_cell(row, 4, status)
+
+        print("✅ 시트 업데이트 성공!")
 
     except Exception as e:
         print("❌ 시트 업데이트 중 오류:", e)
