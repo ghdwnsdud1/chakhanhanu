@@ -8,6 +8,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import gspread
+import json
+import os
 from oauth2client.service_account import ServiceAccountCredentials
 
 # 1. FastAPI 앱 생성
@@ -118,16 +120,23 @@ async def update_product(request: Request):
 
 # 시트 연동 준비
 def update_sheet_row(index, name, price, status):
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('products-459015-657027f8f854.json', scope)
-    client = gspread.authorize(creds)
+    try:
+        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+        
+        # Render 환경변수에서 JSON 텍스트 불러오기
+        json_key = os.getenv("GOOGLE_SHEETS_KEY")
+        creds_dict = json.loads(json_key)
 
-    # 시트 열기
-    sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1ZdFmBrhvHmJ3wpYrlnWSm1WvZAw3ac6Qg9JuBEvSpwI/edit#gid=0")
-    worksheet = sheet.get_worksheet(0)  # 첫 번째 시트 기준
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        client = gspread.authorize(creds)
 
-    # index는 0부터 시작, 시트는 1부터 시작이니까 index + 2 (헤더 한 줄 때문)
-    row = index + 2
-    worksheet.update_cell(row, 1, name)   # A열: 이름
-    worksheet.update_cell(row, 3, price)  # B열: 가격
-    worksheet.update_cell(row, 4, status) # C열: 상태
+        sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1ZdFmBrhvHmJ3wpYrlnWSm1WvZAw3ac6Qg9JuBEvSpwI")
+        worksheet = sheet.get_worksheet(0)
+
+        row = index + 2
+        worksheet.update_cell(row, 1, name)
+        worksheet.update_cell(row, 3, price)
+        worksheet.update_cell(row, 4, status)
+
+    except Exception as e:
+        print("❌ 시트 업데이트 중 오류:", e)
