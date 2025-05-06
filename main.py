@@ -121,6 +121,14 @@ async def update_product(request: Request):
 # 시트 연동 준비
 def update_sheet_row(index, name, price, status):
     try:
+
+ # ✅ 환경변수 확인
+        json_key = os.getenv("GOOGLE_SHEETS_KEY")
+        if not json_key:
+            print("❌ 환경변수 GOOGLE_SHEETS_KEY 를 못 불러왔어요!")
+            return  # 더 이상 진행하면 안 되니까 종료
+
+        print("🔐 환경변수 불러오기 성공!")
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         
         # Render 환경변수에서 JSON 텍스트 불러오기
