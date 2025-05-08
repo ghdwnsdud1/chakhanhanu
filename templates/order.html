@@ -649,6 +649,7 @@ function payByCard() {
     merchant_uid: 'order_' + Date.now(), // 주문번호 (고유해야 해)
     name : '착한한우 고기 주문',
     amount : amount,
+    tax_free: amount,
     buyer_name : name,
     buyer_tel : contact,
     buyer_addr : address,
