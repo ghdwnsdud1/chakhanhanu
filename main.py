@@ -1,56 +1,52 @@
-from fastapi import FastAPI
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-import gspread
+from datetime import datetime, timedelta
+import asyncio
 import json
 import os
+
+from fastapi import FastAPI, Request, Form, Depends
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
+
+import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from dotenv import load_dotenv
+load_dotenv()
 
-# 1. FastAPI 앱 생성
-app = FastAPI()
-
-# 2. 미들웨어 등록
-app.add_middleware(SessionMiddleware, secret_key="supersecretkey123")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # 개발 단계에서는 * 사용
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# 3. 라우터 import 및 등록 (미들웨어 이후!)
+from db import orders_collection
 from payment_routes import router as payment_router
 from admin_routes import router as admin_router
 from order_routes import router as order_router
 from misc_routes import router as misc_router
 
+# FastAPI 앱 생성
+app = FastAPI()
+
+# 세션 미들웨어 (6시간 유효)
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key_here", max_age=6*60*60)
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 정적 파일, 템플릿 경로
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+# 라우터 등록
 app.include_router(payment_router)
 app.include_router(admin_router)
 app.include_router(order_router)
 app.include_router(misc_router)
 
-from datetime import datetime, timedelta
-import asyncio
-from db import orders_collection
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-
-# ⭐ FastAPI 앱이 실행되면 자동으로 이 함수가 시작돼!
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(delete_old_orders())
-
+# 헬스체크
 @app.get("/")
 def keep_alive():
     return {"status": "ok"}
@@ -58,16 +54,17 @@ def keep_alive():
 @app.head("/")
 def head_alive():
     return
-# ⭐ 1시간마다 실행되는 함수
+
+# 자동 삭제: 3일 지난 주문
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(delete_old_orders())
+
 async def delete_old_orders():
     while True:
         three_days_ago = datetime.utcnow() - timedelta(days=3)
-
-        # 문자열 → datetime 객체로 변환해서 비교해야 하므로 먼저 다 꺼내야 해
         orders = list(orders_collection.find())
-
         deleted_count = 0
-
         for order in orders:
             ts_str = order.get("timestamp")
             if ts_str:
@@ -78,21 +75,53 @@ async def delete_old_orders():
                         deleted_count += 1
                 except Exception as e:
                     print(f"❌ 날짜 파싱 실패: {ts_str} → {e}")
-
         print(f"🧹 3일 지난 주문 {deleted_count}개 삭제 완료!")
         await asyncio.sleep(3600)
 
+# 로그인 인증 검사
+def get_current_user(request: Request):
+    return request.session.get("logged_in")
+
+# 로그인 페이지
+@app.get("/admin/login", response_class=HTMLResponse)
+async def show_login_form(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+# 로그인 처리
+@app.post("/admin/login")
+async def login(request: Request):
+    form = await request.form()
+    username = form.get("username")
+    password = form.get("password")
+    if username == "admin" and password == "password":
+        request.session["logged_in"] = True
+        return RedirectResponse(url="/admin/dashboard", status_code=302)
+    return HTMLResponse("로그인 실패", status_code=401)
+
+# 로그아웃
+@app.get("/admin/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/admin/login")
+
+# 관리자 대시보드
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+async def admin_dashboard(request: Request, user: bool = Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/admin/login", status_code=302)
+    return templates.TemplateResponse("admin_dashboard.html", {"request": request})
+
+# 상품 관리 페이지
 @app.get("/admin/products", response_class=HTMLResponse)
 async def admin_products_page(request: Request):
     return templates.TemplateResponse("admin_products.html", {"request": request})
 
-# 임시 상품 리스트 (Google Sheets 대신)
+# 상품 리스트 (가상)
 products = [
     {"name": "한우 등심", "price": 29800, "status": "판매중"},
     {"name": "돼지 목살", "price": 13800, "status": "품절"},
 ]
 
-# 상품 리스트를 반환하는 API
 @app.get("/get-products")
 async def get_products():
     return JSONResponse(content=products)
@@ -105,40 +134,26 @@ async def update_product(request: Request):
     price = data.get("price")
     status = data.get("status")
 
-    if index is not None and 0 <= index < len(products):
-        products[index] = {
-            "name": name,
-            "price": price,
-            "status": status
-        }
+    if index is None:
+        return JSONResponse(content={"message": "index 없음"}, status_code=400)
 
-        update_sheet_row(index, name, price, status)
+    update_sheet_row(index, name, price, status)
 
-        return JSONResponse(content={"message": "상품이 수정되었습니다."})
-    else:
-        return JSONResponse(content={"message": "상품 수정 실패: index 오류"}, status_code=400)
+    return JSONResponse(content={"message": "상품이 수정되었습니다."})
 
-# 시트 연동 준비
+
 def update_sheet_row(index, name, price, status):
     try:
-        with open("/etc/secrets/GOOGLE_SHEETS_KEY", "r") as f:
-            json_str = f.read()
-
-        if not json_str or json_str.strip() == "":
-            print("❌ Secret 파일 내용이 비어있음!")
+        key_path = os.getenv("GOOGLE_SHEETS_KEY_PATH")
+        if not key_path or not os.path.exists(key_path):
+            print("❌ 키 파일을 찾을 수 없습니다.")
             return
+        print("🔐 키 파일 경로:", key_path)
 
-        print("🔐 Secret 파일 정상 읽음!")
-
-        # json 파싱
-        creds_dict = json.loads(json_str)
-
-        # 구글 시트 인증
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_name(key_path, scope)
         client = gspread.authorize(creds)
 
-        # 시트 연결
         sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1ZdFmBrhvHmJ3wpYrlnWSm1WvZAw3ac6Qg9JuBEvSpwI")
         worksheet = sheet.get_worksheet(0)
 
@@ -150,4 +165,20 @@ def update_sheet_row(index, name, price, status):
         print("✅ 시트 업데이트 성공!")
 
     except Exception as e:
-        print("❌ 시트 업데이트 중 오류:", e)
+        print("❌ 시트 업데이트 오류:", e)
+
+key_path = os.getenv("GOOGLE_SHEETS_KEY_PATH")
+
+if not key_path or not os.path.exists(key_path):
+    print("❌ 키 파일을 찾을 수 없습니다.")
+else:
+    print("🔐 키 파일 경로:", key_path)
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name(key_path, scope)
+    print("✅ 시트 인증 객체 생성 성공!")
+
+@app.post("/submit-order")
+async def submit_order(request: Request):
+    data = await request.json()
+    # 주문 MongoDB 저장 처리...
+    return {"success": True}
