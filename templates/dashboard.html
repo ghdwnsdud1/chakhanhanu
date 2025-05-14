@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>착한한우 관리자 대시보드</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    header { background-color: #800000; color: white; padding: 1rem; text-align: center; }
+    nav, .subnav {
+      display: flex;
+      background-color: #eee;
+      border-bottom: 1px solid #ccc;
+    }
+    nav button, .subnav button {
+      flex: 1;
+      padding: 1rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button.active {
+      background-color: #ddd;
+      font-weight: bold;
+    }
+    .tab, .subtab { display: none; padding: 1rem; }
+    .tab.active, .subtab.active { display: block; }
+
+    .card-container {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .card {
+      flex: 1;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .card h3 { margin: 0.5rem 0; font-size: 1rem; color: #555; }
+    .card span { font-size: 1.5rem; font-weight: bold; color: #333; }
+
+    canvas { 
+    max-height: 400px; 
+    margin: 2rem 0; 
+    display: block;
+}
+
+  .subtab canvas {
+    margin-top: 30px;
+  }
+  .subtab .card-container {
+    margin-top: 30px;
+  }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>착한한우 관리자 대시보드</h1>
+</header>
+
+<!-- 상위 탭 -->
+<nav>
+  <button onclick="showTab('statsTab')" class="active">📊 통계</button>
+  <button onclick="showTab('ordersTab')">📋 주문관리</button>
+  <button onclick="showTab('productsTab')">📦 상품관리</button>
+</nav>
+
+<!-- 통계 탭 안의 미니 탭 -->
+<div id="statsTab" class="tab active">
+  <div class="subnav">
+    <button onclick="showSubTab('menuTab')" class="active">인기메뉴</button>
+    <button onclick="showSubTab('timeTab')">주문시간대</button>
+    <button onclick="showSubTab('paymentTab')">결제수단</button>
+    <button onclick="showSubTab('repeatTab')">재주문/평균</button>
+    <button onclick="showSubTab('monthlyTab')">월간 주문</button>
+  </div>
+
+  <div id="menuTab" class="subtab active">
+    <canvas id="topMenusChart" height="350"></canvas>
+  </div>
+  <div id="timeTab" class="subtab">
+    <canvas id="timeChart"></canvas>
+    <canvas id="weekdayChart"></canvas>
+  </div>
+  <div id="paymentTab" class="subtab">
+    <canvas id="paymentChart"></canvas>
+  </div>
+  <div id="repeatTab" class="subtab">
+    <div class="card-container">
+      <div class="card"><h3>재주문율</h3><span id="repeatRate">-</span></div>
+      <div class="card"><h3>평균 주문횟수</h3><span id="avgOrders">-</span></div>
+    </div>
+  </div>
+  <div id="monthlyTab" class="subtab">
+    <canvas id="monthlyChart"></canvas>
+  </div>
+</div>
+
+<!-- 주문 관리 -->
+<div id="ordersTab" class="tab">
+  <h2>📋 주문 관리</h2>
+  <iframe src="/admin" width="100%" height="800" style="border:none;"></iframe>
+</div>
+
+<!-- 상품 관리 -->
+<div id="productsTab" class="tab">
+  <h2>📦 상품 관리</h2>
+  <iframe src="/admin/products" width="100%" height="800" style="border:none;"></iframe>
+</div>
+
+<script>
+  // 상위 탭 전환
+  function showTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // 통계 탭 안의 서브탭 전환
+  function showSubTab(id) {
+    document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.subnav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // 통계 데이터 fetch + 차트 렌더링
+  document.addEventListener("DOMContentLoaded", async () => {
+    const res = await fetch("/admin/stats");
+    const data = await res.json();
+
+    document.getElementById("repeatRate").textContent = `${(data.repeatRate * 100).toFixed(1)}%`;
+    document.getElementById("avgOrders").textContent = `${data.averageOrderPerUser.toFixed(2)}회`;
+
+
+    const topMenus = data.topMenus || {};
+    const topMenuLabels = Object.keys(topMenus);
+    const topMenuValues = topMenuLabels.map(label => topMenus[label].value);
+    const topMenuUnits = topMenuLabels.map(label => topMenus[label].unit);
+    
+new Chart(document.getElementById('topMenusChart'), {
+  type: 'bar',
+  data: {
+    labels: topMenuLabels,
+    datasets: [{
+      label: '인기 메뉴',
+      data: topMenuValues
+    }]
+  },
+  options: {
+  scales: {
+    y: {
+      beginAtZero: true,
+      suggestedMax: Math.max(...topMenuValues) < 10 ? 10 : undefined  // 너무 작으면 보정
+    }
+  },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const index = context.dataIndex;
+            const value = context.raw;
+            const unit = topMenus[Object.keys(topMenus)[index]].displayUnit || topMenus[Object.keys(topMenus)[index]].unit;
+            return unit.includes("개") ? unit : `${context.raw} ${unit}`;
+          }
+        }
+      }
+    }
+  }
+});
+    new Chart(document.getElementById('timeChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(data.orderTimeStats),
+        datasets: [{ label: '주문 시간대', data: Object.values(data.orderTimeStats) }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById('weekdayChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(data.weekdays),
+        datasets: [{
+          label: '요일별 주문 수',
+          data: Object.values(data.weekdays),
+          backgroundColor: 'rgba(255, 159, 64, 0.6)'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+    new Chart(document.getElementById('paymentChart'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(data.paymentStats),
+        datasets: [{
+          label: '결제 수단',
+          data: Object.values(data.paymentStats)
+        }]
+      }
+    });
+
+    new Chart(document.getElementById('monthlyChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(data.monthlyOrders),
+        datasets: [{ label: '월별 주문 수', data: Object.values(data.monthlyOrders) }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+});
+</script>
+
+</body>
+</html>

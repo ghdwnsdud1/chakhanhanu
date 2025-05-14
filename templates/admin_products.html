@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>착한한우 관리자 상품 관리</title>
+  <style>
+    body {
+      background-color: #fffdf8;
+      margin: 0;
+      padding: 40px 0;
+      font-family: 'Segoe UI', '맑은 고딕', sans-serif;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 90%;
+      max-width: 880px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+    h2 {
+      font-size: 26px;
+      text-align: center;
+      margin-bottom: 24px;
+      color: #a94442;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+      font-size: 16px;
+    }
+    th {
+      background-color: #fef0ec;
+      color: #a94442;
+    }
+    input[type="text"], input[type="number"], select {
+      padding: 6px 10px;
+      font-size: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 90%;
+    }
+    button {
+      background-color: #a94442;
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: background 0.2s;
+    }
+    button:hover {
+      background-color: #843534;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📦 착한한우 상품 관리</h2>
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>상품명</th>
+          <th>가격</th>
+          <th>상태</th>
+          <th>수정</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- JavaScript로 채워짐 -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function fetchProducts() {
+      const res = await fetch("/get-products");
+      const products = await res.json();
+      renderTable(products);
+    }
+
+    function renderTable(products) {
+      const tableBody = document.querySelector("#productTable tbody");
+      tableBody.innerHTML = "";
+
+      products.forEach((product, index) => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td><input type="text" value="${product.name}" /></td>
+          <td><input type="number" value="${product.price}" /></td>
+          <td>
+            <select>
+              <option value="판매중" ${product.status === "판매중" ? "selected" : ""}>판매중</option>
+              <option value="품절" ${product.status === "품절" ? "selected" : ""}>품절</option>
+            </select>
+          </td>
+          <td><button onclick="updateProduct(${index})">수정하기</button></td>
+        `;
+
+        tableBody.appendChild(row);
+      });
+    }
+
+    async function updateProduct(index) {
+      const row = document.querySelectorAll("#productTable tbody tr")[index];
+      const updatedName = row.querySelector("input[type='text']").value;
+      const updatedPrice = parseInt(row.querySelector("input[type='number']").value);
+      const updatedStatus = row.querySelector("select").value;
+
+      const payload = {
+        index: index,
+        name: updatedName,
+        price: updatedPrice,
+        status: updatedStatus
+      };
+
+      const res = await fetch("/update-product", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      alert(result.message);
+    }
+
+    fetchProducts();
+  </script>
+</body>
+</html>

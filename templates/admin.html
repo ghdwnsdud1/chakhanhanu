@@ -4,17 +4,37 @@
   <meta charset="UTF-8">
   <title>착한한우 주문 관리</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate">
   <style>
     body {
       font-family: sans-serif;
       padding: 20px;
-      max-width: 1200px;
-      margin: auto;
+      margin: 0;
+      background-color: #fdfdfd;
     }
-    h1 {
+.container {
+  max-width: 1700px;
+  width: 100%;
+  margin: 0 auto; /* 가운데 정렬 */
+}
+
+h1 {
       text-align: center;
       margin-bottom: 20px;
     }
+
+#searchInput {
+  display: block;
+  margin: 0 auto 20px auto; /* 검색창 가운데 */
+  width: 300px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+  #orderContainer {
+  text-align: left; /* 주문 테이블 왼쪽 정렬 */
+}
+    
     table {
       width: 100%;
       border-collapse: collapse;
@@ -29,6 +49,7 @@
     th {
       background-color: #f2f2f2;
     }
+
     .paid {
       color: green;
       font-weight: bold;
@@ -58,131 +79,166 @@
       text-align: left;
       padding-left: 20px;
     }
+
+
   </style>
 </head>
-
 <body>
+<div class="container">
 
-<h1>🐮 착한한우 주문 관리 페이지 🐷</h1>
+  <h1 class="center">🐮 착한한우 주문 관리 페이지 🐷</h1>
 
-<div style="display: flex; justify-content: center;">
-  <table>
-    <thead>
-      <tr>
-        <th>주문시간</th>
-        <th>이름</th>
-        <th>연락처</th>
-        <th>주소</th>
-        <th>공동현관</th>
-        <th>주문상품</th>
-        <th>결제방법</th>
-        <th>입금자명</th>        
-        <th>현금영수증번호</th>
-        <th>총 결제금액</th>
-        <th>결제여부</th>
-        <th>관리</th>
-      </tr>
-    </thead>
-    <tbody id="orderTableBody">
-    </tbody>
-  </table>
+  <div style="text-align: center; margin-bottom: 20px;">
+    <input type="text" id="searchInput" placeholder="이름, 연락처, 주소 검색" style="width: 300px; padding: 8px; font-size: 16px;">
+  </div>
+
+  <div id="orderContainer"></div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button onclick="downloadExcel()">📥 엑셀로 저장하기</button>
+  </div>
+
 </div>
 
 <script>
-// ✅ 주문 불러오기
-async function loadOrders() {
+// 무게 표시 포맷
+function formatWeight(weight, type) {
+  if (type === 'marinated') return `${weight.toLocaleString()}개`;
+  return `${weight.toLocaleString()}g`;
+}
+
+// 주문 가져오기
+async function fetchOrders() {
   try {
-    const response = await fetch('/get-orders');
-    const orders = await response.json();
+    const res = await fetch('/get-orders');
+    const orders = await res.json();
+    const grouped = {};
+    const keyword = document.getElementById('searchInput')?.value?.toLowerCase() || '';
 
-    const tableBody = document.getElementById('orderTableBody');
-    tableBody.innerHTML = '';
+    const container = document.getElementById('orderContainer');
+    container.innerHTML = '';
 
-    orders.forEach((order, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${order.timestamp || '-'}</td>
-        <td>${order.name || '-'}</td>
-        <td>${order.contact || '-'}</td>
-        <td>${order.address || '-'}</td>
-        <td>${order.doorcode || '-'}</td>
-        <td>
-          ${order.items ? order.items.map(item => `${item.meat} ${item.weight}${item.type === 'marinated' ? '개' : 'g'}`).join('<br>') : '-'}
-        </td>
-        <td>
-          ${order.paymentMethod === 'account' ? '계좌이체' : order.paymentMethod === 'card' ? '카드결제' : '-'}
-        </td>
-        <td>
-          ${order.paymentMethod === 'account' ? (order.depositorName || '-') : '-'}
-        </td>
-        <td>
-          ${order.paymentMethod === 'account' ? (order.cashReceipt || '-') : '-'}
-        </td>
-        <td>${order.totalAmount || '-'}</td>
-        <td class="${order.is_paid ? 'paid' : 'unpaid'}">
-          ${order.is_paid ? '완료' : '미완료'}
-        </td>
-        <td>
-          ${!order.is_paid ? `<button onclick="markAsPaid(${index})">결제완료</button>` : ''}
-          <button class="delete" onclick="deleteOrder(${index})">삭제</button>
-        </td>
+    orders.filter(order => {
+      const combined = `${order.name} ${order.contact} ${order.address}`.toLowerCase();
+      return combined.includes(keyword);
+    }).forEach(order => {
+      const date = order.배송일자 || '분류불가';
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(order);
+    });
+
+    Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+      const section = document.createElement('div');
+      const sectionId = `section-${date}`;
+
+      section.innerHTML = `
+        <div onclick="toggleSection('${sectionId}')" 
+         style="display: inline-block; padding: 8px 16px; background-color: #f7f7f7; border: 1px solid #ccc; border-radius: 8px; box-shadow: 1px 1px 4px rgba(0,0,0,0.1); cursor: pointer; transition: background-color 0.2s; margin-bottom: 10px;">
+          <span style="font-size: 20px; font-weight: bold; color: #333;">📅 ${date}</span>
+        </div>
+        <table id="${sectionId}" style="display: block;">
+          <thead>
+            <tr>
+              <th>주문시간</th>
+              <th>이름</th>
+              <th>연락처</th>
+              <th>주소</th>
+              <th>공동현관</th>
+              <th>주문상품</th>
+              <th>결제방법</th>
+              <th>입금자명</th>        
+              <th>현금영수증번호</th>
+              <th>총 금액</th>
+              <th>결제여부</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${grouped[date].map(order => {
+              const items = order.items.map(item => `${item.meat} ${formatWeight(item.weight, item.type)}`).join(', ');
+              return `
+                <tr data-order-id="${order._id}">
+                  <td>${order.timestamp || '-'}</td>
+                  <td>${order.name || '-'}</td>
+                  <td>${order.contact || '-'}</td>
+                  <td>${order.address || '-'}</td>
+                  <td>${order.doorcode || '-'}</td>
+                  <td>${items}</td>
+                  <td>${order.paymentMethod === 'account' ? '계좌이체' : '카드결제'}</td>
+                  <td>${order.depositorName || '-'}</td>
+                  <td>${order.cashReceipt || '-'}</td>
+                  <td>${order.totalAmount || '-'}</td>
+                  <td class="${order.isPaid ? 'paid' : 'unpaid'}">${order.isPaid ? '완료' : '미완료'}</td>
+                  <td>
+                    ${!order.isPaid ? `<button onclick="markAsPaid('${order._id}')">결제완료</button>` : ''}
+                    <button class="delete" onclick="deleteOrder('${order._id}')">삭제</button>
+                  </td>
+                </tr>
+                ${order.requestMessage ? `<tr data-extra-for="${order._id}"><td colspan="12" class="extra-row">📝 요청사항: ${order.requestMessage}</td></tr>` : ''}
+                ${order.deliveryRequest ? `<tr data-extra-for="${order._id}"><td colspan="12" class="extra-row">🚚 배송 요청사항: ${order.deliveryRequest}</td></tr>` : ''}
+              `;
+            }).join('')}
+          </tbody>
+        </table>
       `;
-      tableBody.appendChild(row);
-
-      // ✅ 요청사항 있으면 추가
-      if (order.requestMessage && order.requestMessage.trim() !== '') {
-        const requestRow = document.createElement('tr');
-        requestRow.innerHTML = `<td colspan="12" class="extra-row">📝 요청사항: ${order.requestMessage}</td>`;
-        tableBody.appendChild(requestRow);
-      }
-
-      // ✅ 배송 요청사항 있으면 추가
-      if (order.deliveryRequest && order.deliveryRequest.trim() !== '') {
-        const deliveryRow = document.createElement('tr');
-        deliveryRow.innerHTML = `<td colspan="12" class="extra-row">🚚 배송 요청사항: ${order.deliveryRequest}</td>`;
-        tableBody.appendChild(deliveryRow);
-      }
+      container.appendChild(section);
     });
   } catch (error) {
     console.error('주문 불러오기 실패:', error);
   }
 }
 
-// ✅ 결제 완료 처리
-async function markAsPaid(index) {
-  try {
-    const response = await fetch(`/mark-paid/${index}`, { method: 'POST' });
-    if (response.ok) {
-      alert('결제 완료 처리되었습니다!');
-      loadOrders();
-    } else {
-      alert('처리 실패');
+// 섹션 접기
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// 결제 완료 처리
+async function markAsPaid(orderId) {
+  const response = await fetch(`/mark-paid/${orderId}`, { method: 'POST' });
+  if (response.ok) {
+    alert('결제 완료 처리되었습니다!');
+
+    // 🔥 직접 결제상태만 바꿔주자
+    const tr = document.querySelector(`tr[data-order-id="${orderId}"]`);
+    if (tr) {
+      const paymentCell = tr.querySelector('td:nth-child(11)');  // 11번째 칸이 결제여부
+      paymentCell.className = 'paid';
+      paymentCell.textContent = '완료';
+
+      const buttonContainer = tr.querySelector('td:nth-child(12)');
+      buttonContainer.innerHTML = `<button class="delete" onclick="deleteOrder('${orderId}')">삭제</button>`;
     }
-  } catch (error) {
-    console.error('결제 완료 실패', error);
+  } else {
+    alert('처리 실패');
   }
 }
 
-// ✅ 주문 삭제 처리
-async function deleteOrder(index) {
+
+// 주문 삭제
+async function deleteOrder(orderId) {
   if (!confirm('정말 삭제할까요?')) return;
-
-  try {
-    const response = await fetch(`/delete-order/${index}`, { method: 'POST' });
-    if (response.ok) {
-      alert('삭제 완료');
-      loadOrders();
-    } else {
-      alert('삭제 실패');
-    }
-  } catch (error) {
-    console.error('삭제 실패', error);
+  const res = await fetch(`/delete-order/${orderId}`, { method: 'POST' });
+  const data = await res.json();
+  if (data.success) {
+    alert('삭제 완료!');
+    document.querySelector(`[data-order-id="${orderId}"]`)?.remove();
+    document.querySelectorAll(`[data-extra-for="${orderId}"]`)?.forEach(el => el.remove());
+  } else {
+    alert('삭제 실패!');
   }
 }
 
-// ✅ 페이지 열릴 때 자동으로 주문 목록 불러오기
-window.onload = loadOrders;
-</script>
+// 엑셀 다운로드
+function downloadExcel() {
+  window.location.href = '/download-orders';
+}
 
+// 페이지 로드
+window.onload = fetchOrders;
+document.getElementById('searchInput').addEventListener('input', fetchOrders);
+
+</script>
 </body>
 </html>
