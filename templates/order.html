@@ -731,14 +731,10 @@ function payByCard() {
   const amount = Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, ''));
   const contact = document.getElementById('contact').value;
   const address = document.getElementById('address').value;
-  const token = document.getElementById('token').value;
+  const token = crypto.randomUUID();  // token element 없이 직접 생성
 
   const orderData = {
-    name: name,
-    contact: contact,
-    address: address,
-    totalAmount: amount,
-    token: token
+    name, contact, address, totalAmount: amount, token
   };
 
 // 모바일 리디렉션 대비: localStorage에 임시 저장
