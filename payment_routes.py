@@ -49,6 +49,6 @@ def verify_payment(imp_uid, access_token):
     response = requests.get(url, headers=headers).json()
     return response['response']
 
-@app.get("/mobile-payment-success", response_class=HTMLResponse)
+@router.get("/mobile-payment-success", response_class=HTMLResponse)
 async def mobile_payment_success(request: Request):
     return templates.TemplateResponse("mobile_success.html", {"request": request})
