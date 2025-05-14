@@ -764,6 +764,10 @@ function payByCard() {
   });
 }
 
+function createRandomToken() {
+  return (crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).substr(2, 10);
+}
+
 function showAccountFields() {
   document.getElementById('paymentMethod').value = 'account';
   document.getElementById('accountFields').style.display = 'block';
