@@ -731,6 +731,18 @@ function payByCard() {
   const amount = Number(document.getElementById('finalAmount').innerText.replace(/[^0-9]/g, ''));
   const contact = document.getElementById('contact').value;
   const address = document.getElementById('address').value;
+  const token = document.getElementById('token').value;
+
+  const orderData = {
+    name: name,
+    contact: contact,
+    address: address,
+    totalAmount: amount,
+    token: token
+  };
+
+// 모바일 리디렉션 대비: localStorage에 임시 저장
+  localStorage.setItem("pendingOrder", JSON.stringify(orderData));
 
   const IMP = window.IMP;
   IMP.init('imp20083434'); // 여기다가 너 포트원 '가맹점 식별코드' 넣어야 해!! (ex: imp_1234567890)
@@ -744,22 +756,24 @@ function payByCard() {
     buyer_name : name,
     buyer_tel : contact,
     buyer_addr : address,
-    buyer_postcode : '' // 우편번호 필요없으면 비워둬
-  }, function(rsp) {
+    buyer_postcode : '' , // 우편번호 필요없으면 비워둬
+
+   m_redirect_url: 'https://chakhanhanu1.onrender.com/mobile-payment-success'  // ← 반드시 배포된 서버 주소로 바꿔줘야 함!
+  }, function (rsp) {
     if (rsp.success) {
       alert('결제가 성공했습니다!\n결제번호: ' + rsp.imp_uid);
 
-      // 서버로 결제정보 보내기
+      // ✅ PC환경에서는 여기서 직접 서버에 전송
       saveOrderToServer('card', rsp.imp_uid)
-  .then(() => {
-    window.location.href = '/success';
-  })
-  .catch(err => {
-    alert("❌ 주문 저장 중 오류가 발생했습니다.");
-    console.error(err);
-  });
+        .then(() => {
+          window.location.href = '/success';
+        })
+        .catch(err => {
+          alert("❌ 주문 저장 중 오류가 발생했습니다.");
+          console.error(err);
+        });
     } else {
-      alert('결제에 실패했습니다: ' + rsp.error_msg);
+      alert('❌ 결제에 실패했습니다: ' + rsp.error_msg);
     }
   });
 }
