@@ -4,8 +4,10 @@ from fastapi.responses import RedirectResponse
 import requests
 from db import orders_collection
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 @router.post("/payment-result")
 async def payment_result(request: Request):
