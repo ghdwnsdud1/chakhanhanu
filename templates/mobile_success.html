@@ -15,32 +15,40 @@
     alert("❌ 주문 정보가 유실되었습니다.");
   }
 
-  const orderData = JSON.parse(saved);
+  const localData = JSON.parse(localStorage.getItem("pendingOrder") || '{}');
+const orderData = {
+  items: JSON.parse(localStorage.getItem("selectedItems") || '[]'),  // ✅ 고기 품목 포함
+  totalAmount: localData.totalAmount || '',
+  contact: localData.contact || '',
+  name: localData.name || '',
+  address: localData.address || '',
+  doorcode: localData.doorcode || '',
+  requestMessage: localData.requestMessage || '',
+  deliveryRequest: localData.deliveryRequest || '',
+  paymentMethod: 'card',
+  depositorName: '',
+  cashReceipt: '',
+  imp_uid: impUid,
+  isPaid: true,
+  token: localData.token || crypto.randomUUID()
+};
 
-  // 필수 필드 보완
-  orderData.paymentMethod = "card";
-  orderData.imp_uid = impUid;  // ✅ 여기가 핵심 (snake_case)
+console.log("📦 전송할 orderData:", orderData);
 
-  console.log("📦 전송할 orderData:", orderData);
-
-  fetch("https://chakhanhanu1.onrender.com/submit-order", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(orderData)
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("❌ 서버 응답 실패");
-    return res.json();
-  })
-  .then(data => {
-    alert("✅ 주문이 저장되었습니다.");
-    localStorage.removeItem("pendingOrder");
-    window.location.href = "/success";
-  })
-  .catch(err => {
-    alert("❌ 주문 저장 실패: " + err.message);
-    console.error(err);
-  });
+fetch("/submit-order", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(orderData)
+})
+.then(res => res.json())
+.then(data => {
+  alert(data.message);
+  location.href = "/success";
+})
+.catch(err => {
+  console.error("❌ 주문 저장 실패:", err);
+  alert("서버 오류로 주문 저장 실패");
+});
 </script>
 </body>
 </html>

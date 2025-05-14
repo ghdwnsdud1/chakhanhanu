@@ -739,6 +739,7 @@ function payByCard() {
 
 // 모바일 리디렉션 대비: localStorage에 임시 저장
   localStorage.setItem("pendingOrder", JSON.stringify(orderData));
+  localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
 
   const IMP = window.IMP;
   IMP.init('imp20083434'); // 여기다가 너 포트원 '가맹점 식별코드' 넣어야 해!! (ex: imp_1234567890)
