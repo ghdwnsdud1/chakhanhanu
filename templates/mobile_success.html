@@ -7,27 +7,38 @@
 <body>
   <h2>주문 처리 중입니다...</h2>
   <script>
-    const url = new URL(window.location.href);
-    const impUid = url.searchParams.get("imp_uid");
+  const url = new URL(window.location.href);
+  const impUid = url.searchParams.get("imp_uid");
 
-    const orderData = JSON.parse(localStorage.getItem("pendingOrder") || "{}");
+  const saved = localStorage.getItem("pendingOrder");
+  if (!saved) {
+    alert("❌ 주문 정보가 유실되었습니다.");
+  }
 
-    orderData.paymentMethod = "card";
-    orderData.impUid = impUid;
+  const orderData = JSON.parse(saved);
 
-    fetch("/submit-order", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(orderData)
-    }).then(res => res.json())
-      .then(data => {
-        alert("✅ 주문이 저장되었습니다.");
-        localStorage.removeItem("pendingOrder");
-        location.href = "/success";
-      }).catch(err => {
-        alert("❌ 주문 저장 실패");
-        console.error(err);
-      });
-  </script>
+  // 필드 보완
+  orderData.paymentMethod = "card";
+  orderData.impUid = impUid;
+
+  fetch("https://chakhanhanu1.onrender.com/submit-order", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(orderData)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("❌ 서버 응답 실패");
+    return res.json();
+  })
+  .then(data => {
+    alert("✅ 주문이 저장되었습니다.");
+    localStorage.removeItem("pendingOrder");
+    window.location.href = "/success";
+  })
+  .catch(err => {
+    alert("❌ 주문 저장 실패: " + err.message);
+    console.error(err);
+  });
+</script>
 </body>
 </html>
