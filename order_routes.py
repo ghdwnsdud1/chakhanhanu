@@ -8,6 +8,7 @@ import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from payment_routes import get_portone_token, verify_payment
+from typing import List, Dict, Optional
 
 # MongoDB 연결
 load_dotenv()
@@ -20,19 +21,19 @@ router = APIRouter()
 
 # ✅ 주문 모델
 class Order(BaseModel):
-    items: list
+    items: List[Dict]  # ✅ 구조 명확히 지정
     totalAmount: str
     contact: str
     name: str
     address: str
-    doorcode: str
-    requestMessage: str
-    deliveryRequest: str
+    doorcode: Optional[str] = ''
+    requestMessage: Optional[str] = ''
+    deliveryRequest: Optional[str] = ''
     paymentMethod: str
-    depositorName: str = ""
-    cashReceipt: str = ""
-    timestamp: str = ""
-    imp_uid: str = ""
+    depositorName: Optional[str] = ''
+    cashReceipt: Optional[str] = ''
+    timestamp: Optional[str] = ''
+    imp_uid: Optional[str] = ''  # ✅ snake_case
 
 # ✅ 주문 저장
 @router.post("/submit-order")

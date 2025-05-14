@@ -17,13 +17,15 @@
 
   const orderData = JSON.parse(saved);
 
-  // 필드 보완
+  // 필수 필드 보완
   orderData.paymentMethod = "card";
-  orderData.impUid = impUid;
+  orderData.imp_uid = impUid;  // ✅ 여기가 핵심 (snake_case)
+
+  console.log("📦 전송할 orderData:", orderData);
 
   fetch("https://chakhanhanu1.onrender.com/submit-order", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(orderData)
   })
   .then(res => {
