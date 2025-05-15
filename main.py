@@ -186,9 +186,23 @@ else:
 
 @app.post("/submit-order")
 async def submit_order(request: Request):
-    data = await request.json()
-    # 주문 MongoDB 저장 처리...
-    return {"success": True}
+    try:
+        data = await request.json()
+        print("✅ 주문 데이터 수신:", data)
+
+        # 👉 예시 저장 코드 (MongoDB 사용 시)
+        from db import orders_collection
+        from datetime import datetime
+        data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        orders_collection.insert_one(data)
+
+        return JSONResponse(content={"message": "주문 저장 완료", "success": True})
+
+    except Exception as e:
+        import traceback
+        print("❌ /submit-order 처리 중 에러 발생:")
+        traceback.print_exc()  # 터미널에 에러 로그 전체 출력
+        return JSONResponse(status_code=500, content={"message": "서버 오류 발생"})
 
 @app.middleware("http")
 async def log_order_page_visits(request: Request, call_next):
