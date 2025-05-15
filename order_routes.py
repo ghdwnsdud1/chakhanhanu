@@ -5,10 +5,17 @@ from pydantic import BaseModel
 from datetime import datetime
 import pytz
 import os
+from fastapi.responses import JSONResponse, HTMLResponse
+import secrets
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from payment_routes import get_portone_token, verify_payment
 from typing import List, Dict, Optional
+from fastapi.templating import Jinja2Templates
+import requests
+
+templates = Jinja2Templates(directory="templates")
+
 
 # MongoDB 연결
 load_dotenv()
@@ -44,6 +51,10 @@ async def submit_order(order: Order):
 
     order_dict = order.dict()
 
+# ✅ token 생성
+    order_token = secrets.token_urlsafe(8)  # 예: h3X1QbD2
+    order_dict["token"] = order_token
+
     # 기본값: 무조건 미결제
     order_dict["isPaid"] = False
 
@@ -62,7 +73,12 @@ async def submit_order(order: Order):
 
     orders_collection.insert_one(order_dict)
 
-    return {"success": True}
+    # ✅ 응답에 token 기반 주문조회 링크 포함
+    return {
+        "success": True,
+        "message": "주문이 저장되었습니다.",
+        "lookup_url": f"/order-lookup?token={order_token}"
+    }
 
 # ✅ 주문 목록 가져오기
 @router.get("/get-orders")
@@ -86,3 +102,72 @@ async def mark_paid(order_id: str):
 async def delete_order(order_id: str):
     result = orders_collection.delete_one({"_id": ObjectId(order_id)})
     return {"success": bool(result.deleted_count)}
+
+
+@router.get("/order-lookup", response_class=HTMLResponse)
+async def order_lookup(request: Request, token: str):
+    order = orders_collection.find_one({"token": token})
+    if not order:
+        return templates.TemplateResponse("order_lookup.html", {"request": request, "error": "주문을 찾을 수 없습니다."})
+    
+    return templates.TemplateResponse("order_lookup.html", {
+        "request": request,
+        "order": order
+    })
+# ✅ 고객 주문 취소
+@router.post("/request-cancel-by-token")
+async def request_cancel_by_token(request: Request):
+    body = await request.json()
+    token = body.get("token")
+    if not token:
+        return JSONResponse(status_code=400, content={"message": "토큰이 없습니다."})
+
+    result = orders_collection.update_one(
+        {"token": token},
+        {"$set": {"cancelRequested": True}}
+    )
+
+    if result.matched_count == 0:
+        return JSONResponse(status_code=404, content={"message": "주문을 찾을 수 없습니다."})
+
+    return {"message": "📩 취소 요청이 접수되었습니다. 운영팀이 확인 후 처리합니다."}
+
+def get_portone_token():
+    url = "https://api.iamport.kr/users/getToken"
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "imp_key": os.getenv("PORTONE_API_KEY"),
+        "imp_secret": os.getenv("PORTONE_API_SECRET")
+    }
+    res = requests.post(url, json=data, headers=headers).json()
+    return res["response"]["access_token"]
+
+@router.post("/cancel-order")
+async def cancel_order(request: Request):
+    body = await request.json()
+    order_id = body.get("order_id")
+
+    order = orders_collection.find_one({"_id": ObjectId(order_id)})
+    if not order:
+        return JSONResponse(status_code=404, content={"message": "주문을 찾을 수 없습니다."})
+    
+    if not order.get("isPaid") or not order.get("imp_uid"):
+        return JSONResponse(status_code=400, content={"message": "결제된 주문만 취소할 수 있습니다."})
+
+    access_token = get_portone_token()
+
+    cancel_res = requests.post(
+        "https://api.iamport.kr/payments/cancel",
+        headers={"Authorization": access_token},
+        json={"imp_uid": order["imp_uid"], "reason": "고객 요청 취소"}
+    ).json()
+
+    if cancel_res.get("code") == 0:
+        # DB 상태 변경
+        orders_collection.update_one(
+            {"_id": ObjectId(order_id)},
+            {"$set": {"isPaid": False, "isCanceled": True, "cancelRequested": False}}
+        )
+        return JSONResponse(content={"success": True, "message": "✅ 결제가 취소되었습니다."})
+    else:
+        return JSONResponse(status_code=400, content={"message": "PG사 취소 실패: " + cancel_res.get("message", "")})

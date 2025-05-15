@@ -1,3 +1,4 @@
+from fastapi import Request
 from datetime import datetime, timedelta
 import asyncio
 import json
@@ -109,7 +110,12 @@ async def logout(request: Request):
 async def dashboard_page(request: Request):
     if not request.session.get("logged_in"):
         return RedirectResponse("/login")
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    visitor_count = get_today_visitors()
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "visitor_count": visitor_count
+    })
+
 # 상품 관리 페이지
 @app.get("/admin/products", response_class=HTMLResponse)
 async def admin_products(request: Request):
@@ -183,3 +189,27 @@ async def submit_order(request: Request):
     data = await request.json()
     # 주문 MongoDB 저장 처리...
     return {"success": True}
+
+@app.middleware("http")
+async def log_order_page_visits(request: Request, call_next):
+    if request.url.path.startswith("/"):  # 예: /order, /order/confirm 등 포함
+        today = datetime.now().strftime("%Y-%m-%d")
+        log_file = f"logs/{today}.txt"
+        os.makedirs("logs", exist_ok=True)
+        with open(log_file, "a") as f:
+            f.write(f"{datetime.now().isoformat()} - {request.client.host}\n")
+    response = await call_next(request)
+    return response
+
+def get_today_visitors():
+    try:
+        today = datetime.now().strftime("%Y-%m-%d")
+        log_file = f"logs/{today}.txt"
+        if os.path.exists(log_file):
+            with open(log_file, "r") as f:
+                lines = f.readlines()
+                unique_ips = set(line.split(" - ")[1].strip() for line in lines if " - " in line)
+                return len(unique_ips)
+    except Exception as e:
+        print("❌ 방문자 수 확인 실패:", e)
+    return 0

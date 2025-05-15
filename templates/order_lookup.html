@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>주문 확인</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .info {
+      line-height: 1.6;
+    }
+    .info p {
+      margin: 8px 0;
+    }
+    .cancel-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background-color: #ff5f5f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 30px;
+    }
+    .cancel-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>📦 주문 확인</h1>
+
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% else %}
+    <div class="info">
+      <p><strong>고객명:</strong> {{ order.name }}</p>
+      <p><strong>전화번호:</strong> {{ order.contact }}</p>
+      <p><strong>주소:</strong> {{ order.address }}</p>
+      <p><strong>총 금액:</strong> {{ order.totalAmount }}</p>
+      <p><strong>결제수단:</strong> {{ order.paymentMethod }}</p>
+      <p><strong>결제여부:</strong> {{ "✅ 결제 완료" if order.isPaid else "❌ 미결제" }}</p>
+      <p><strong>주문시간:</strong> {{ order.timestamp }}</p>
+    </div>
+
+    <button class="cancel-btn" onclick="requestCancel()" {% if order.cancelRequested or order.isPaid == false %}disabled{% endif %}>
+  {% if order.cancelRequested %}
+    취소 요청됨
+  {% else %}
+    주문 취소 요청하기
+  {% endif %}
+</button>
+
+    <script>
+      function requestCancel() {
+        if (!confirm("정말로 주문을 취소하시겠습니까?")) return;
+
+        fetch("/request-cancel-by-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: "{{ order.token }}" })
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          location.reload();
+        })
+        .catch(err => {
+          alert("❌ 취소 실패: " + err.message);
+        });
+      }
+    </script>
+  {% endif %}
+</body>
+</html>

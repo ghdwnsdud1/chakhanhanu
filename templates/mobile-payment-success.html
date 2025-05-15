@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결제 완료</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    .spinner {
+      margin: 30px auto;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>결제가 완료되었습니다</h1>
+  <p>주문 정보를 저장 중입니다...</p>
+  <div class="spinner"></div>
+
+  <script>
+    const orderData = JSON.parse(localStorage.getItem("pendingOrder") || "{}");
+
+    if (!orderData || Object.keys(orderData).length === 0) {
+      alert("⚠️ 주문 정보가 없습니다.");
+    } else {
+      fetch("/submit-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        location.href = data.lookup_url;
+      })
+      .catch(err => {
+        alert("❌ 주문 저장 실패: " + err.message);
+      });
+    }
+  </script>
+</body>
+</html>
