@@ -61,6 +61,12 @@ async def submit_order(order: Order):
     imp_uid = order_dict.get("imp_uid", "")
 
     if order_dict.get("paymentMethod") == "card" and imp_uid:
+        token_res = get_portone_token()
+        if not token_res:
+            return JSONResponse(status_code=500, content={"message": "포트원 인증 실패"})
+
+access_token = token_res["response"]["access_token"]
+
         # 카드결제일 경우, 결제정보 확인
         access_token = get_portone_token()
         payment_info = verify_payment(imp_uid, access_token)
@@ -133,14 +139,28 @@ async def request_cancel_by_token(request: Request):
     return {"message": "📩 취소 요청이 접수되었습니다. 운영팀이 확인 후 처리합니다."}
 
 def get_portone_token():
-    url = "https://api.iamport.kr/users/getToken"
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "imp_key": os.getenv("PORTONE_API_KEY"),
-        "imp_secret": os.getenv("PORTONE_API_SECRET")
-    }
-    res = requests.post(url, json=data, headers=headers).json()
-    return res["response"]["access_token"]
+    try:
+        url = "https://api.iamport.kr/users/getToken"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "imp_key": os.getenv("PORTONE_API_KEY"),
+            "imp_secret": os.getenv("PORTONE_API_SECRET")
+        }
+
+        res = requests.post(url, json=data, headers=headers)
+        result = res.json()
+
+        print("🔐 PortOne 응답:", result)
+
+        if res.status_code == 200 and result.get("code") == 0:
+            return result  # 전체 JSON 반환
+        else:
+            print("❌ PortOne 토큰 요청 실패:", result)
+            return None
+
+    except Exception as e:
+        print("❌ PortOne 토큰 요청 중 예외 발생:", e)
+        return None
 
 @router.post("/cancel-order")
 async def cancel_order(request: Request):

@@ -190,9 +190,7 @@ async def submit_order(request: Request):
         data = await request.json()
         print("✅ 주문 데이터 수신:", data)
 
-        # 👉 예시 저장 코드 (MongoDB 사용 시)
-        from db import orders_collection
-        from datetime import datetime
+        # MongoDB에 저장
         data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         orders_collection.insert_one(data)
 
@@ -201,7 +199,7 @@ async def submit_order(request: Request):
     except Exception as e:
         import traceback
         print("❌ /submit-order 처리 중 에러 발생:")
-        traceback.print_exc()  # 터미널에 에러 로그 전체 출력
+        traceback.print_exc()  # 콘솔에 에러 전체 출력
         return JSONResponse(status_code=500, content={"message": "서버 오류 발생"})
 
 @app.middleware("http")
