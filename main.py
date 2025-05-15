@@ -192,14 +192,16 @@ async def submit_order(request: Request):
 
 @app.middleware("http")
 async def log_order_page_visits(request: Request, call_next):
-    if request.url.path.startswith("/"):  # 예: /order, /order/confirm 등 포함
-        today = datetime.now().strftime("%Y-%m-%d")
-        log_file = f"logs/{today}.txt"
-        os.makedirs("logs", exist_ok=True)
-        with open(log_file, "a") as f:
-            f.write(f"{datetime.now().isoformat()} - {request.client.host}\n")
-    response = await call_next(request)
-    return response
+    if request.url.path == "/":  # ✅ 오직 메인 주문서 진입만 로그
+        try:
+            today = datetime.now().strftime("%Y-%m-%d")
+            log_file = f"logs/{today}.txt"
+            os.makedirs("logs", exist_ok=True)
+            with open(log_file, "a") as f:
+                f.write(f"{datetime.now().isoformat()} - {request.client.host}\n")
+        except Exception as e:
+            print("❌ 방문자 로그 저장 실패:", e)
+    return await call_next(request)
 
 def get_today_visitors():
     try:
