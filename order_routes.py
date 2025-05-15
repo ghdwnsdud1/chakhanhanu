@@ -51,7 +51,7 @@ async def submit_order(order: Order):
 
     order_dict = order.dict()
 
-# ✅ token 생성
+    # ✅ token 생성
     order_token = secrets.token_urlsafe(8)  # 예: h3X1QbD2
     order_dict["token"] = order_token
 
@@ -65,10 +65,9 @@ async def submit_order(order: Order):
         if not token_res:
             return JSONResponse(status_code=500, content={"message": "포트원 인증 실패"})
 
-access_token = token_res["response"]["access_token"]
+        access_token = token_res["response"]["access_token"]
 
         # 카드결제일 경우, 결제정보 확인
-        access_token = get_portone_token()
         payment_info = verify_payment(imp_uid, access_token)
         if payment_info.get("status") == "paid":
             order_dict["isPaid"] = True
