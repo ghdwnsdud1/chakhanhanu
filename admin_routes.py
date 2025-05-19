@@ -185,6 +185,7 @@ async def download_orders():
         rows.append({
             "이름": name,
             "연락처": contact,
+            "주소": group[0].get("address", ""),
             "배송일자": delivery,
             "주문상품": ", ".join(all_items),
             "결제상태": "완료" if isPaid else "미완료",
