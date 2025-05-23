@@ -172,7 +172,7 @@ async def cancel_order(request: Request):
         body = await request.json()
         order_id = body.get("order_id")
 
-        order = await orders_collection.find_one({"_id": ObjectId(order_id)})
+        order = orders_collection.find_one({"_id": ObjectId(order_id)})
         if not order or not order.get("isPaid") or not order.get("imp_uid"):
             return JSONResponse(status_code=400, content={"success": False, "message": "결제된 주문만 취소할 수 있습니다."})
 
@@ -190,7 +190,7 @@ async def cancel_order(request: Request):
         ).json()
 
         if cancel_res.get("code") == 0:
-            await orders_collection.update_one(
+            orders_collection.update_one(
                 {"_id": ObjectId(order_id)},
                 {"$set": {"isPaid": False, "isCanceled": True, "cancelRequested": False}}
             )
