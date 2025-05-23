@@ -244,9 +244,6 @@ function downloadExcel() {
   window.location.href = '/download-orders';
 }
 
-// 페이지 로드
-window.onload = fetchOrders;
-document.getElementById('searchInput').addEventListener('input', fetchOrders);
 
 async function cancelApproved(orderId) {
   if (!confirm("PG사에 결제 취소까지 처리할까요?")) return;
@@ -257,15 +254,28 @@ async function cancelApproved(orderId) {
     body: JSON.stringify({ order_id: orderId })
   });
 
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    const rawText = await res.text();
+    console.error("🔥 서버 에러 응답 원문:", rawText);
+    alert("❌ 서버 에러 응답:\n\n" + rawText);
+    return;
+  }
+
   if (data.success) {
     alert(data.message);
-    fetchOrders(); // UI 갱신
+    fetchOrders();
   } else {
     alert('❌ 취소 실패: ' + (data.message || '알 수 없는 오류'));
   }
 }
 
-</script>
+// ✅ window.onload 정리
+window.onload = function () {
+  fetchOrders();
+  document.getElementById('searchInput').addEventListener('input', fetchOrders);
+};</script>
 </body>
 </html>

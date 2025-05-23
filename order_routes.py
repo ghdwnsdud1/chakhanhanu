@@ -161,32 +161,43 @@ def get_portone_token():
         print("❌ PortOne 토큰 요청 중 예외 발생:", e)
         return None
 
+
 @router.post("/cancel-order")
 async def cancel_order(request: Request):
-    body = await request.json()
-    order_id = body.get("order_id")
+    try:
+        body = await request.json()
+        order_id = body.get("order_id")
 
-    order = orders_collection.find_one({"_id": ObjectId(order_id)})
-    if not order:
-        return JSONResponse(status_code=404, content={"message": "주문을 찾을 수 없습니다."})
+        order = await orders_collection.find_one({"_id": ObjectId(order_id)})
+        if not order:
+            return JSONResponse(status_code=404, content={"success": False, "message": "주문을 찾을 수 없습니다."})
+        
+        if not order.get("isPaid") or not order.get("imp_uid"):
+            return JSONResponse(status_code=400, content={"success": False, "message": "결제된 주문만 취소할 수 있습니다."})
+
+        access_token = get_portone_token()
+
+        cancel_res = requests.post(
+            "https://api.iamport.kr/payments/cancel",
+            headers={"Authorization": access_token},
+            json={"imp_uid": order["imp_uid"], "reason": "고객 요청 취소"}
+        ).json()
+
+        if cancel_res.get("code") == 0:
+            await orders_collection.update_one(
+                {"_id": ObjectId(order_id)},
+                {"$set": {"isPaid": False, "isCanceled": True, "cancelRequested": False}}
+            )
+            return JSONResponse(content={"success": True, "message": "✅ 결제가 취소되었습니다."})
+        else:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "PG사 취소 실패: " + cancel_res.get("message", "")}
+            )
     
-    if not order.get("isPaid") or not order.get("imp_uid"):
-        return JSONResponse(status_code=400, content={"message": "결제된 주문만 취소할 수 있습니다."})
-
-    access_token = get_portone_token()
-
-    cancel_res = requests.post(
-        "https://api.iamport.kr/payments/cancel",
-        headers={"Authorization": access_token},
-        json={"imp_uid": order["imp_uid"], "reason": "고객 요청 취소"}
-    ).json()
-
-    if cancel_res.get("code") == 0:
-        # DB 상태 변경
-        orders_collection.update_one(
-            {"_id": ObjectId(order_id)},
-            {"$set": {"isPaid": False, "isCanceled": True, "cancelRequested": False}}
+    except Exception as e:
+        print("🔥 서버 에러:", str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": "서버 에러 발생", "detail": str(e)}
         )
-        return JSONResponse(content={"success": True, "message": "✅ 결제가 취소되었습니다."})
-    else:
-        return JSONResponse(status_code=400, content={"message": "PG사 취소 실패: " + cancel_res.get("message", "")})
