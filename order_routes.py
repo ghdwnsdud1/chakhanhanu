@@ -201,7 +201,7 @@ async def cancel_order(request: Request):
                 content={"success": False, "message": "PG사 취소 실패: " + cancel_res.get("message", "")}
             )
 
-   except Exception as e:
+    except Exception as e:
     import traceback
     print("🔥 서버 에러:", str(e))
     traceback.print_exc()  # ✅ 이 줄 추가!
