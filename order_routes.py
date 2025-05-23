@@ -163,8 +163,8 @@ def get_portone_token():
 
 
 @router.post("/cancel-order")
-print("🧠 DEBUG: cancel-order 코드 반영됨!")
 async def cancel_order(request: Request):
+    print("🧠 DEBUG: cancel-order 코드 반영됨!")
     try:
         body = await request.json()
         order_id = body.get("order_id")
