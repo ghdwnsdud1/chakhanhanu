@@ -169,14 +169,12 @@ async def cancel_order(request: Request):
         order_id = body.get("order_id")
 
         order = await orders_collection.find_one({"_id": ObjectId(order_id)})
-        if not order:
-            return JSONResponse(status_code=404, content={"success": False, "message": "주문을 찾을 수 없습니다."})
-        
-        if not order.get("isPaid") or not order.get("imp_uid"):
+        if not order or not order.get("isPaid") or not order.get("imp_uid"):
             return JSONResponse(status_code=400, content={"success": False, "message": "결제된 주문만 취소할 수 있습니다."})
 
         access_token = get_portone_token()
 
+        # ✅ 여기는 동기 함수니까 await 쓰면 안 됨!
         cancel_res = requests.post(
             "https://api.iamport.kr/payments/cancel",
             headers={"Authorization": access_token},
@@ -194,7 +192,7 @@ async def cancel_order(request: Request):
                 status_code=400,
                 content={"success": False, "message": "PG사 취소 실패: " + cancel_res.get("message", "")}
             )
-    
+
     except Exception as e:
         print("🔥 서버 에러:", str(e))
         return JSONResponse(
