@@ -119,7 +119,7 @@ async def order_lookup(request: Request, token: str):
         "request": request,
         "order": order
     })
-# ✅ 고객 주문 취소
+# ✅ 고객 주문 취소 요청 API (비동기 MongoDB이므로 await 필요!)
 @router.post("/request-cancel-by-token")
 async def request_cancel_by_token(request: Request):
     body = await request.json()
@@ -127,7 +127,7 @@ async def request_cancel_by_token(request: Request):
     if not token:
         return JSONResponse(status_code=400, content={"message": "토큰이 없습니다."})
 
-    result = orders_collection.update_one(
+    result = await orders_collection.update_one(  # ✅ await 추가
         {"token": token},
         {"$set": {"cancelRequested": True}}
     )
@@ -137,6 +137,8 @@ async def request_cancel_by_token(request: Request):
 
     return {"message": "📩 취소 요청이 접수되었습니다. 운영팀이 확인 후 처리합니다."}
 
+
+# ✅ PortOne 액세스 토큰 요청 함수 (동기 → await 쓰면 안 됨)
 def get_portone_token():
     try:
         url = "https://api.iamport.kr/users/getToken"
@@ -162,6 +164,7 @@ def get_portone_token():
         return None
 
 
+# ✅ 관리자 결제 취소 승인 처리
 @router.post("/cancel-order")
 async def cancel_order(request: Request):
     print("🧠 DEBUG: cancel-order 코드 반영됨!")
@@ -173,13 +176,13 @@ async def cancel_order(request: Request):
         if not order or not order.get("isPaid") or not order.get("imp_uid"):
             return JSONResponse(status_code=400, content={"success": False, "message": "결제된 주문만 취소할 수 있습니다."})
 
-        token_res = get_portone_token()
+        token_res = get_portone_token()  # ✅ await ❌ (동기 함수)
         if not token_res:
             return JSONResponse(status_code=500, content={"success": False, "message": "PortOne 인증 실패"})
 
         access_token = token_res["response"]["access_token"]
 
-        # ✅ 여기는 동기 함수니까 await 쓰면 안 됨!
+        # ✅ await ❌ (requests는 동기)
         cancel_res = requests.post(
             "https://api.iamport.kr/payments/cancel",
             headers={"Authorization": access_token},
