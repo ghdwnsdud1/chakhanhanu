@@ -172,7 +172,11 @@ async def cancel_order(request: Request):
         if not order or not order.get("isPaid") or not order.get("imp_uid"):
             return JSONResponse(status_code=400, content={"success": False, "message": "결제된 주문만 취소할 수 있습니다."})
 
-        access_token = get_portone_token()
+        token_res = get_portone_token()
+        if not token_res:
+            return JSONResponse(status_code=500, content={"success": False, "message": "PortOne 인증 실패"})
+
+        access_token = token_res["response"]["access_token"]
 
         # ✅ 여기는 동기 함수니까 await 쓰면 안 됨!
         cancel_res = requests.post(
