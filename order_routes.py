@@ -127,7 +127,7 @@ async def request_cancel_by_token(request: Request):
     if not token:
         return JSONResponse(status_code=400, content={"message": "토큰이 없습니다."})
 
-    result = await orders_collection.update_one(  # ✅ await 추가
+    result = orders_collection.update_one( 
         {"token": token},
         {"$set": {"cancelRequested": True}}
     )
