@@ -201,9 +201,11 @@ async def cancel_order(request: Request):
                 content={"success": False, "message": "PG사 취소 실패: " + cancel_res.get("message", "")}
             )
 
-    except Exception as e:
-        print("🔥 서버 에러:", str(e))
-        return JSONResponse(
-            status_code=500,
-            content={"success": False, "message": "서버 에러 발생", "detail": str(e)}
-        )
+   except Exception as e:
+    import traceback
+    print("🔥 서버 에러:", str(e))
+    traceback.print_exc()  # ✅ 이 줄 추가!
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "message": "서버 에러 발생", "detail": str(e)}
+    )
