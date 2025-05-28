@@ -186,6 +186,7 @@ async def download_orders():
             "이름": name,
             "연락처": contact,
             "주소": group[0].get("address", ""),
+            "공동현관비밀번호": group[0].get("doorcode", ""),
             "배송일자": delivery,
             "주문상품": ", ".join(all_items),
             "결제상태": "완료" if isPaid else "미완료",
@@ -204,7 +205,7 @@ async def download_orders():
             for cell in row:
                 cell.font = bold_font
                 cell.alignment = align
-        for col, width in zip(['A', 'B', 'C', 'D', 'E', 'F'], [14, 20, 14, 50, 12, 50]):
+        for col, width in zip(['A', 'B', 'C', 'D', 'E', 'F', 'G'], [14, 20, 14, 20, 50, 12, 50]):
             worksheet.column_dimensions[col].width = width
 
     output.seek(0)
