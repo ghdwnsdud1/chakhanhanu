@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Request
 from bson import ObjectId
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import os
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -110,15 +110,33 @@ async def delete_order(order_id: str):
 
 
 @router.get("/order-lookup", response_class=HTMLResponse)
-async def order_lookup(request: Request, token: str):
-    order = orders_collection.find_one({"token": token})
-    if not order:
-        return templates.TemplateResponse("order_lookup.html", {"request": request, "error": "주문을 찾을 수 없습니다."})
-    
-    return templates.TemplateResponse("order_lookup.html", {
-        "request": request,
-        "order": order
-    })
+async def order_lookup_page(request: Request):
+    return templates.TemplateResponse("order_lookup.html", {"request": request})
+
+@router.post("/lookup-orders")
+async def lookup_orders(req: Request):
+    data = await req.json()
+    name = data.get("name", "").strip()
+    contact = data.get("contact", "").strip()
+
+    if not name or not contact:
+        return {"orders": []}
+
+    today = datetime.now(pytz.timezone("Asia/Seoul"))
+    seven_days_ago = today - timedelta(days=7)
+
+    query = {
+        "name": name,
+        "contact": contact,
+        "timestamp": { "$gte": seven_days_ago.strftime("%Y-%m-%d") }
+    }
+
+    orders = list(orders_collection.find(query))
+    for o in orders:
+        o["_id"] = str(o["_id"])
+
+    return {"orders": orders}
+
 # ✅ 고객 주문 취소 요청 API (비동기 MongoDB이므로 await 필요!)
 @router.post("/request-cancel-by-token")
 async def request_cancel_by_token(request: Request):
@@ -209,3 +227,48 @@ async def cancel_order(request: Request):
             status_code=500,
             content={"success": False, "message": "서버 에러 발생", "detail": str(e)}
     )
+
+@router.post("/lookup-orders-by-info")
+async def lookup_orders_by_info(request: Request):
+    data = await request.json()
+    name = data.get("name", "").strip()
+    raw_phone = data.get("phone", "").strip()
+    phone = raw_phone.replace("-", "")
+
+    print("🔍 name:", name)
+    print("🔍 phone:", phone)
+
+    matched = list(orders_collection.find({
+        "name": name,
+        "contact": {"$regex": phone}  # 전화번호 일부만 일치해도 OK
+    }))
+    print("📦 matched orders:", matched)
+
+
+    if not name or not phone:
+            return JSONResponse(status_code=400, content={"message": "이름과 전화번호가 필요합니다."})
+
+    cursor = orders_collection.find({
+        "name": name,
+        "contact": phone
+    }).sort("created_at", -1)
+
+    orders = []
+    for order in cursor:
+        created_at = order.get("created_at") or order.get("timestamp")
+
+        if isinstance(created_at, datetime):
+            created_at_str = created_at.strftime("%Y-%m-%d %H:%M")
+        elif isinstance(created_at, str):
+            created_at_str = created_at
+        else:
+            created_at_str = "시간 없음"
+
+        orders.append({
+            "created_at": created_at_str,
+            "items": order.get("items", "상품 정보 없음"),
+            "cancelRequested": order.get("cancelRequested", False),
+            "token": order.get("token")
+        })
+
+    return {"orders": orders}

@@ -2,89 +2,141 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>주문 확인</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 주문 조회</title>
   <style>
     body {
-      font-family: 'Pretendard', sans-serif;
-      max-width: 500px;
-      margin: 40px auto;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #f5f5f5;
     }
-    h1 {
+    .container {
+      max-width: 480px;
+      margin: 60px auto;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
       text-align: center;
-      margin-bottom: 20px;
+      color: #333;
+      margin-bottom: 24px;
     }
-    .info {
-      line-height: 1.6;
-    }
-    .info p {
-      margin: 8px 0;
-    }
-    .cancel-btn {
+    label {
       display: block;
+      margin-bottom: 16px;
+      font-size: 16px;
+      color: #444;
+    }
+    input[type="text"] {
+      width: 60%;
+      padding: 14px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
       width: 100%;
-      padding: 12px;
-      background-color: #ff5f5f;
+      padding: 14px;
+      font-size: 16px;
+      background-color: #4CAF50;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 30px;
+      margin-top: 20px;
     }
-    .cancel-btn:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+    button:hover {
+      background-color: #45a049;
+    }
+    #orderResults {
+      margin-top: 30px;
+      font-size: 15px;
+    }
+    @media (max-width: 480px) {
+      .container {
+        margin: 20px;
+        padding: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>📦 주문 확인</h1>
+  <div class="container">
+    <h2>내 주문목록 조회</h2>
+<label>이름: <input type="text" id="lookupName"></label><br>
+<label>연락처: <input type="text" id="lookupPhone" name="phone" placeholder="전화번호 ('-' 없이 입력)" required></label><br>
+<button onclick="lookupOrders()">주문 조회</button>
 
-  {% if error %}
-    <p style="color: red;">{{ error }}</p>
-  {% else %}
-    <div class="info">
-      <p><strong>고객명:</strong> {{ order.name }}</p>
-      <p><strong>전화번호:</strong> {{ order.contact }}</p>
-      <p><strong>주소:</strong> {{ order.address }}</p>
-      <p><strong>총 금액:</strong> {{ order.totalAmount }}</p>
-      <p><strong>결제수단:</strong> {{ order.paymentMethod }}</p>
-      <p><strong>결제여부:</strong> {{ "✅ 결제 완료" if order.isPaid else "❌ 미결제" }}</p>
-      <p><strong>주문시간:</strong> {{ order.timestamp }}</p>
-    </div>
+<div id="orderResults">
+</div>
 
-    <button class="cancel-btn" onclick="requestCancel()" {% if order.cancelRequested or order.isPaid == false %}disabled{% endif %}>
-  {% if order.cancelRequested %}
-    취소 요청됨
-  {% else %}
-    주문 취소 요청하기
-  {% endif %}
-</button>
+<script>
+  async function lookupOrders() {
+    const name = document.getElementById("lookupName").value.trim();
+    const contact = document.getElementById("lookupPhone").value.trim();
 
-    <script>
-      function requestCancel() {
-        if (!confirm("정말로 주문을 취소하시겠습니까?")) return;
+    if (!name || !contact) {
+      alert("이름과 연락처를 입력하세요.");
+      return;
+    }
 
-        fetch("/request-cancel-by-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: "{{ order.token }}" })
-        })
-        .then(res => res.json())
-        .then(data => {
-          alert(data.message);
-          location.reload();
-        })
-        .catch(err => {
-          alert("❌ 취소 실패: " + err.message);
-        });
+    const res = await fetch("/lookup-orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, contact })
+    });
+
+    const data = await res.json();
+    const container = document.getElementById("orderResults");
+    container.innerHTML = "";
+
+    if (!data.orders || data.orders.length === 0) {
+      container.innerHTML = "<p>최근 7일간 주문 내역이 없습니다.</p>";
+      return;
+    }
+
+    data.orders.forEach(order => {
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <hr>
+        <b>주문시간:</b> ${order.timestamp}<br>
+        <b>상품:</b> ${order.items.map(i => `${i.meat} ${i.quantity || i.weight}${i.type === 'marinated' ? '개' : 'g'}`).join(", ")}<br>
+        <b>총액:</b> ${order.totalAmount} / <b>결제:</b> ${order.isPaid ? "완료" : "미완료"}<br>
+        ${order.cancelRequested ? '<span style="color:red;">⛔ 취소 요청됨</span>' : `<button onclick="requestCancel('${order.token}')">주문 취소</button>`}`;
+      container.appendChild(div);
+    });
+  }
+
+  async function requestCancel(token) {
+    if (!confirm("정말 주문을 취소하시겠습니까?")) return;
+
+    const res = await fetch(`/request-cancel/${token}`, {
+      method: "POST"
+    });
+
+    if (res.ok) {
+      alert("취소 요청이 접수되었습니다.");
+      lookupOrders(); // 목록 새로고침
+    } else {
+      alert("취소 요청 실패");
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const phoneInput = document.getElementById('lookupPhone');
+    phoneInput.addEventListener('input', function (e) {
+      let numbersOnly = e.target.value.replace(/\D/g, '');
+
+      if (numbersOnly.length < 4) {
+        e.target.value = numbersOnly;
+      } else if (numbersOnly.length < 8) {
+        e.target.value = numbersOnly.slice(0, 3) + '-' + numbersOnly.slice(3);
+      } else if (numbersOnly.length <= 11) {
+        e.target.value = numbersOnly.slice(0, 3) + '-' + numbersOnly.slice(3, 7) + '-' + numbersOnly.slice(7, 11);
+      } else {
+        e.target.value = numbersOnly.slice(0, 3) + '-' + numbersOnly.slice(3, 7) + '-' + numbersOnly.slice(7, 11);
       }
-    </script>
-  {% endif %}
-</body>
-</html>
+    });
+  });
+</script>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>결제 완료 - 착한한우</title>
   <style>
@@ -67,6 +68,20 @@
 .btn.reorder:hover {
   background-color: #B85C38;
 }
+.lookup-button {
+  margin-top: 24px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.lookup-button:hover {
+  background-color: #45a049;
+}
   </style>
 </head>
 <body>
@@ -84,6 +99,13 @@
     </div>
     <a href="/" class="btn reorder">다시 주문하러 가기</a>
     <a href="https://open.kakao.com/o/sp1Ftljh" target="_blank" class="btn">카카오톡 문의하기</a>
+    <button class="lookup-button" onclick="goToOrderLookup()">내 주문목록 보기</button>
   </div>
 </body>
+<script>
+function goToOrderLookup() {
+  window.location.href = "/order-lookup";
+}
+</script>
+
 </html>

@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from collections import defaultdict, Counter
 from datetime import datetime
 from urllib.parse import quote
+from db import orders_collection
 
 # ✅ 주문 데이터 모델
 class Item(BaseModel):
@@ -317,4 +318,17 @@ async def get_stats():
         "time_slots": dict(sorted(time_slots.items())),
         "weekdays": dict(weekdays)
     }
+@router.post("/request-cancel/{token}")
+async def request_cancel(token: str):
+    # 1. MongoDB에서 token으로 주문 찾기
+    order = orders_collection.find_one({"token": token})
+    if not order:
+        raise HTTPException(status_code=404, detail="주문을 찾을 수 없습니다.")
 
+    # 2. 주문에 취소 요청 표시
+    orders_collection.update_one(
+        {"_id": order["_id"]},
+        {"$set": {"cancelRequested": True}}
+    )
+
+    return {"success": True}

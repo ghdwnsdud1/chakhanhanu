@@ -220,11 +220,39 @@ select {
   background-color: #c69c65 !important;
 }
 
+.lookup-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.lookup-button:hover {
+  background-color: #45a049;
+}
+
   </style>
    <script src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
 </head>
 
 <body>
+<div id="myOrdersResult" style="margin-top: 15px;"></div>
+<!-- 내 주문목록 버튼 & 조회폼 -->
+<div style="text-align: right; margin: 10px;">
+  <button class="lookup-button" onclick="goToOrderLookup()">내 주문목록</button>
+</div>
+
+<div id="lookupForm" style="display:none; margin-bottom: 15px;">
+  <input type="text" id="lookupName" placeholder="이름" style="width: 100px;" />
+  <input type="text" id="lookupPhone" placeholder="전화번호" style="width: 120px;" />
+  <button onclick="lookupMyOrders()">조회</button>
+</div>
+
+<div id="myOrdersResult" style="margin-top: 15px;"></div>
+
 <div class="container">
   <h1>🐮 착한한우 🐷</h1>
   <h2>고기 주문서</h2>
@@ -893,18 +921,19 @@ document.addEventListener('DOMContentLoaded', function () {
   // 페이지 로딩 시 기본 탭 설정
   changeTab('pork');
   
-  // 연락처 포맷팅 이벤트 리스너
-  document.getElementById('contact').addEventListener('input', function(e) {
-    let num = e.target.value.replace(/\D/g, '');
-    if (num.length < 4) {
-      e.target.value = num;
-    } else if (num.length < 8) {
-      e.target.value = num.slice(0, 3) + '-' + num.slice(3);
-    } else {
-      e.target.value = num.slice(0, 3) + '-' + num.slice(3, 7) + '-' + num.slice(7, 11);
-    }
-  });
-  
+// 연락처 포맷팅 이벤트 리스너
+document.getElementById('contact').addEventListener('input', function(e) {
+  let num = e.target.value.replace(/\D/g, '');
+  if (num.length < 4) {
+    e.target.value = num;
+  } else if (num.length < 8) {
+    e.target.value = num.slice(0, 3) + '-' + num.slice(3);
+  } else {
+    e.target.value = num.slice(0, 3) + '-' + num.slice(3, 7) + '-' + num.slice(7, 11);
+  }
+});
+
+ 
   // 다른 이벤트 리스너들 추가
   document.getElementById('contact').addEventListener('input', checkSubmitEnabled);
   document.getElementById('name').addEventListener('input', checkSubmitEnabled);
@@ -958,6 +987,91 @@ if (item.category === "간편식") {
 }
     });
   });
+function showLookupForm() {
+    const form = document.getElementById("lookupForm");
+    form.style.display = (form.style.display === "none") ? "block" : "none";
+  }
+
+function lookupMyOrders() {
+  const name = document.getElementById("lookupName").value.trim();
+  const phone = document.getElementById("lookupPhone").value.trim();
+
+  if (!name || !phone) {
+    alert("이름과 전화번호를 모두 입력해주세요.");
+    return;
+  }
+
+  fetch("/lookup-orders-by-info", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, phone })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("서버 오류 발생");
+    return res.json();
+})
+  .then(data => {
+    const box = document.getElementById("myOrdersResult");
+    if (!data.orders || data.orders.length === 0) {
+      box.innerHTML = "<p>주문 내역이 없습니다.</p>";
+    } else {
+      let html = "<ul>";
+      data.orders.forEach(order => {
+      const itemsText = Array.isArray(order.items)
+        ? order.items.map(i => {
+            const quantity = i.quantity ?? 1;
+            let unit = "g";  // 기본 단위는 g
+
+      // 분류에 따라 단위 결정
+            if (i.type === "marinated") unit = "개";
+
+            return `${i.meat} ${quantity}${unit}`;
+        }).join(", ")
+      : order.items;
+
+      html += `<li>
+        ${order.created_at} / ${itemsText}
+        ${order.cancelRequested
+          ? " <strong>[취소 요청됨]</strong>"
+          : ` <button onclick="requestCancel('${order.token}')">취소 요청</button>`}
+      </li>`;
+});
+      html += "</ul>";
+      box.innerHTML = html;
+    }
+  })
+  .catch(err => {
+    alert("❌ 오류가 발생했습니다: " + err.message);
+  });
+}
+
+function requestCancel(token) {
+  if (!confirm("정말로 취소 요청하시겠습니까?")) return;
+
+  fetch("/request-cancel-by-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    lookupMyOrders(); // 다시 불러오기
+  });
+}
+function goToOrderLookup() {
+    window.location.href = "/order-lookup";
+}
+
+function formatPhoneNumber(raw) {
+  const numbers = raw.replace(/\D/g, '');
+  if (numbers.length === 11) {
+    return `${numbers.slice(0,3)}-${numbers.slice(3,7)}-${numbers.slice(7,11)}`;
+  } else if (numbers.length === 10) {
+    return `${numbers.slice(0,3)}-${numbers.slice(3,6)}-${numbers.slice(6,10)}`;
+  }
+  return raw;
+}
 </script>
 </body>
 </html>
