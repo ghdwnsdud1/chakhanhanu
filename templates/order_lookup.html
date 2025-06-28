@@ -103,6 +103,8 @@
         <b>주문시간:</b> ${order.timestamp}<br>
         <b>상품:</b> ${order.items.map(i => `${i.meat} ${i.quantity || i.weight}${i.type === 'marinated' ? '개' : 'g'}`).join(", ")}<br>
         <b>총액:</b> ${order.totalAmount} / <b>결제:</b> ${order.isPaid ? "완료" : "미완료"}<br>
+        <b>주소:</b> ${order.address || "주소 없음"}<br>
+        <b>요청사항:</b> ${order.requestMessage || "없음"}<br>
         ${order.cancelRequested ? '<span style="color:red;">⛔ 취소 요청됨</span>' : `<button onclick="requestCancel('${order.token}')">주문 취소</button>`}`;
       container.appendChild(div);
     });
